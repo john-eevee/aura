@@ -23,20 +23,6 @@ defmodule AuraWeb.Router do
     get "/", PageController, :home
   end
 
-  scope "/app", AuraWeb do
-    pipe_through :browser
-    # Clients
-    live "/clients", ClientLive.Index, :index
-    live "/clients/:id", ClientLive.Show, :show
-    live "/clients/new", ClientLive.Form, :new
-    live "/clients/:id/edit", ClientLive.Form, :edit
-    # Contacts
-    live "/contacts", ContactLive.Index, :index
-    live "/contacts/:id", ContactLive.Show, :show
-    live "/contacts/new", ContactLive.Form, :new
-    live "/contacts/:id/edit", ContactLive.Form, :edit
-  end
-
   # Other scopes may use custom stacks.
   # scope "/api", AuraWeb do
   #   pipe_through :api
@@ -68,6 +54,16 @@ defmodule AuraWeb.Router do
       on_mount: [{AuraWeb.UserAuth, :require_authenticated}] do
       live "/users/settings", UserLive.Settings, :edit
       live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
+      # Clients
+      live "/clients/new", ClientLive.Form, :new
+      live "/clients", ClientLive.Index, :index
+      live "/clients/:id", ClientLive.Show, :show
+      live "/clients/:id/edit", ClientLive.Form, :edit
+      # Contact
+      live "/contacts/new", ContactLive.Form, :new
+      live "/contacts", ContactLive.Index, :index
+      live "/contacts/:id", ContactLive.Show, :show
+      live "/contacts/:id/edit", ContactLive.Form, :edit
     end
 
     post "/users/update-password", UserSessionController, :update_password

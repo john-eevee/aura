@@ -1,4 +1,4 @@
-defmodule Aura.Clients.Contacts do
+defmodule Aura.Clients.Contact do
   use Ecto.Schema
   import Ecto.Changeset
 
@@ -9,15 +9,14 @@ defmodule Aura.Clients.Contacts do
     field :phone, :string
     field :email, :string
     field :role, :string
-    field :client_id, :binary_id
     field :user_id, :binary_id
-
+    belongs_to :client, Aura.Clients.Client, type: :binary_id
     timestamps(type: :utc_datetime)
   end
 
   @doc false
-  def changeset(contacts, attrs, user_scope) do
-    contacts
+  def changeset(contact, attrs, user_scope) do
+    contact
     |> cast(attrs, [:name, :phone, :email, :role])
     |> validate_required([:name, :phone, :email, :role])
     |> put_change(:user_id, user_scope.user.id)

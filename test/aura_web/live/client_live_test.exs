@@ -4,8 +4,18 @@ defmodule AuraWeb.ClientLiveTest do
   import Phoenix.LiveViewTest
   import Aura.ClientsFixtures
 
-  @create_attrs %{name: "some name", status: :active, since: "2025-09-19T23:13:00", industry_type: "some industry_type"}
-  @update_attrs %{name: "some updated name", status: :inactive, since: "2025-09-20T23:13:00", industry_type: "some updated industry_type"}
+  @create_attrs %{
+    name: "some name",
+    status: :active,
+    since: "2025-09-19T23:13:00",
+    industry_type: "some industry_type"
+  }
+  @update_attrs %{
+    name: "some updated name",
+    status: :inactive,
+    since: "2025-09-20T23:13:00",
+    industry_type: "some updated industry_type"
+  }
   @invalid_attrs %{name: nil, status: nil, since: nil, industry_type: nil}
 
   setup :register_and_log_in_user
@@ -20,6 +30,7 @@ defmodule AuraWeb.ClientLiveTest do
     setup [:create_client]
 
     test "lists all clients", %{conn: conn, client: client} do
+      IO.inspect(conn, label: "conn in list all clients")
       {:ok, _index_live, html} = live(conn, ~p"/clients")
 
       assert html =~ "Listing Clients"

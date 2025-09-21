@@ -10,7 +10,7 @@ defmodule Aura.Clients.Client do
     field :status, Ecto.Enum, values: [:active, :inactive, :terminated]
     field :industry_type, :string
     field :user_id, :binary_id
-
+    has_many :contacts, Aura.Clients.Contact, on_delete: :delete_all
     timestamps(type: :utc_datetime)
   end
 

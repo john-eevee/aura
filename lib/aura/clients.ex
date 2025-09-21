@@ -7,6 +7,7 @@ defmodule Aura.Clients do
   alias Aura.Repo
 
   alias Aura.Clients.Client
+  alias Aura.Clients.Contact
   alias Aura.Accounts.Scope
 
   @doc """
@@ -145,17 +146,14 @@ defmodule Aura.Clients do
     Client.changeset(client, attrs, scope)
   end
 
-  alias Aura.Clients.Contacts
-  alias Aura.Accounts.Scope
-
   @doc """
-  Subscribes to scoped notifications about any contacts changes.
+  Subscribes to scoped notifications about any contact changes.
 
   The broadcasted messages match the pattern:
 
-    * {:created, %Contacts{}}
-    * {:updated, %Contacts{}}
-    * {:deleted, %Contacts{}}
+    * {:created, %Contact{}}
+    * {:updated, %Contact{}}
+    * {:deleted, %Contact{}}
 
   """
   def subscribe_contacts(%Scope{} = scope) do
@@ -164,7 +162,7 @@ defmodule Aura.Clients do
     Phoenix.PubSub.subscribe(Aura.PubSub, "user:#{key}:contacts")
   end
 
-  defp broadcast_contacts(%Scope{} = scope, message) do
+  defp broadcast_contact(%Scope{} = scope, message) do
     key = scope.user.id
 
     Phoenix.PubSub.broadcast(Aura.PubSub, "user:#{key}:contacts", message)
@@ -176,111 +174,111 @@ defmodule Aura.Clients do
   ## Examples
 
       iex> list_contacts(scope)
-      [%Contacts{}, ...]
+      [%Contact{}, ...]
 
   """
   def list_contacts(%Scope{} = scope) do
-    Repo.all_by(Contacts, user_id: scope.user.id)
+    Repo.all_by(Contact, user_id: scope.user.id)
   end
 
   @doc """
-  Gets a single contacts.
+  Gets a single contact.
 
-  Raises `Ecto.NoResultsError` if the Contacts does not exist.
+  Raises `Ecto.NoResultsError` if the Contact does not exist.
 
   ## Examples
 
-      iex> get_contacts!(scope, 123)
-      %Contacts{}
+      iex> get_contact!(scope, 123)
+      %Contact{}
 
-      iex> get_contacts!(scope, 456)
+      iex> get_contact!(scope, 456)
       ** (Ecto.NoResultsError)
 
   """
-  def get_contacts!(%Scope{} = scope, id) do
-    Repo.get_by!(Contacts, id: id, user_id: scope.user.id)
+  def get_contact!(%Scope{} = scope, id) do
+    Repo.get_by!(Contact, id: id, user_id: scope.user.id)
   end
 
   @doc """
-  Creates a contacts.
+  Creates a contact.
 
   ## Examples
 
-      iex> create_contacts(scope, %{field: value})
-      {:ok, %Contacts{}}
+      iex> create_contact(scope, %{field: value})
+      {:ok, %Contact{}}
 
-      iex> create_contacts(scope, %{field: bad_value})
+      iex> create_contact(scope, %{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_contacts(%Scope{} = scope, attrs) do
-    with {:ok, contacts = %Contacts{}} <-
-           %Contacts{}
-           |> Contacts.changeset(attrs, scope)
+  def create_contact(%Scope{} = scope, attrs) do
+    with {:ok, contact = %Contact{}} <-
+           %Contact{}
+           |> Contact.changeset(attrs, scope)
            |> Repo.insert() do
-      broadcast_contacts(scope, {:created, contacts})
-      {:ok, contacts}
+      broadcast_contact(scope, {:created, contact})
+      {:ok, contact}
     end
   end
 
   @doc """
-  Updates a contacts.
+  Updates a contact.
 
   ## Examples
 
-      iex> update_contacts(scope, contacts, %{field: new_value})
-      {:ok, %Contacts{}}
+      iex> update_contact(scope, contact, %{field: new_value})
+      {:ok, %Contact{}}
 
-      iex> update_contacts(scope, contacts, %{field: bad_value})
+      iex> update_contact(scope, contact, %{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_contacts(%Scope{} = scope, %Contacts{} = contacts, attrs) do
-    true = contacts.user_id == scope.user.id
+  def update_contact(%Scope{} = scope, %Contact{} = contact, attrs) do
+    true = contact.user_id == scope.user.id
 
-    with {:ok, contacts = %Contacts{}} <-
-           contacts
-           |> Contacts.changeset(attrs, scope)
+    with {:ok, contact = %Contact{}} <-
+           contact
+           |> Contact.changeset(attrs, scope)
            |> Repo.update() do
-      broadcast_contacts(scope, {:updated, contacts})
-      {:ok, contacts}
+      broadcast_contact(scope, {:updated, contact})
+      {:ok, contact}
     end
   end
 
   @doc """
-  Deletes a contacts.
+  Deletes a contact.
 
   ## Examples
 
-      iex> delete_contacts(scope, contacts)
-      {:ok, %Contacts{}}
+      iex> delete_contact(scope, contact)
+      {:ok, %Contact{}}
 
-      iex> delete_contacts(scope, contacts)
+      iex> delete_contact(scope, contact)
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_contacts(%Scope{} = scope, %Contacts{} = contacts) do
-    true = contacts.user_id == scope.user.id
+  def delete_contact(%Scope{} = scope, %Contact{} = contact) do
+    true = contact.user_id == scope.user.id
 
-    with {:ok, contacts = %Contacts{}} <-
-           Repo.delete(contacts) do
-      broadcast_contacts(scope, {:deleted, contacts})
-      {:ok, contacts}
+    with {:ok, contact = %Contact{}} <-
+           Repo.delete(contact) do
+      broadcast_contact(scope, {:deleted, contact})
+      {:ok, contact}
     end
   end
 
   @doc """
-  Returns an `%Ecto.Changeset{}` for tracking contacts changes.
+  Returns an `%Ecto.Changeset{}` for tracking contact changes.
 
   ## Examples
 
-      iex> change_contacts(scope, contacts)
-      %Ecto.Changeset{data: %Contacts{}}
+      iex> change_contact(scope, contact)
+      %Ecto.Changeset{data: %Contact{}}
 
   """
-  def change_contacts(%Scope{} = scope, %Contacts{} = contacts, attrs \\ %{}) do
-    true = contacts.user_id == scope.user.id
+  def change_contact(%Scope{} = scope, %Contact{} = contact, attrs \\ %{}) do
+    true = contact.user_id == scope.user.id
 
-    Contacts.changeset(contacts, attrs, scope)
+    Contact.changeset(contact, attrs, scope)
   end
 end

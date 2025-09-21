@@ -35,3 +35,6 @@ aura-*.tar
 npm-debug.log
 /assets/node_modules/
 
+# Todo file
+TODO.md
+
