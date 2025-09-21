@@ -30,7 +30,6 @@ defmodule AuraWeb.ClientLiveTest do
     setup [:create_client]
 
     test "lists all clients", %{conn: conn, client: client} do
-      IO.inspect(conn, label: "conn in list all clients")
       {:ok, _index_live, html} = live(conn, ~p"/clients")
 
       assert html =~ "Listing Clients"
