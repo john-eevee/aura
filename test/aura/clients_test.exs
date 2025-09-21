@@ -32,17 +32,17 @@ defmodule Aura.ClientsTest do
       valid_attrs = %{
         name: "some name",
         status: :active,
-        since: ~N[2025-09-19 23:13:00],
+        since: ~D[2025-09-19],
         industry_type: "some industry_type"
       }
 
       scope = user_scope_fixture()
 
       assert {:ok, %Client{} = client} = Clients.create_client(scope, valid_attrs)
-      assert client.name == "some name"
+      assert client.name == "Some name"
       assert client.status == :active
-      assert client.since == ~N[2025-09-19 23:13:00]
-      assert client.industry_type == "some industry_type"
+      assert client.since == ~D[2025-09-19]
+      assert client.industry_type == "Some Industry_type"
       assert client.user_id == scope.user.id
     end
 
@@ -58,15 +58,15 @@ defmodule Aura.ClientsTest do
       update_attrs = %{
         name: "some updated name",
         status: :inactive,
-        since: ~N[2025-09-20 23:13:00],
+        since: ~D[2025-09-20],
         industry_type: "some updated industry_type"
       }
 
       assert {:ok, %Client{} = client} = Clients.update_client(scope, client, update_attrs)
-      assert client.name == "some updated name"
+      assert client.name == "Some updated name"
       assert client.status == :inactive
-      assert client.since == ~N[2025-09-20 23:13:00]
-      assert client.industry_type == "some updated industry_type"
+      assert client.since == ~D[2025-09-20]
+      assert client.industry_type == "Some Updated Industry_type"
     end
 
     test "update_client/3 with invalid scope raises" do

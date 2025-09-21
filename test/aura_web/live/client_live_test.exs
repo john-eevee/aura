@@ -71,7 +71,7 @@ defmodule AuraWeb.ClientLiveTest do
       html = render(index_live)
       # Note: Flash message may not appear due to LiveView navigation limitations
       # The important thing is that the client was created and we navigated correctly
-      assert html =~ "some name"
+      assert html =~ "Some name"
     end
 
     test "updates client in listing", %{conn: conn, client: client} do
@@ -97,7 +97,7 @@ defmodule AuraWeb.ClientLiveTest do
 
       html = render(index_live)
       assert html =~ "Client updated successfully"
-      assert html =~ "some updated name"
+      assert html =~ "Some updated name"
     end
 
     test "deletes client in listing", %{conn: conn, client: client} do
@@ -141,7 +141,7 @@ defmodule AuraWeb.ClientLiveTest do
 
       html = render(show_live)
       assert html =~ "Client updated successfully"
-      assert html =~ "some updated name"
+      assert html =~ "Some updated name"
     end
   end
 end

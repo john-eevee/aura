@@ -38,7 +38,7 @@ defmodule AuraWeb.ClientLive.Form do
                 />
                 <.input
                   field={@form[:since]}
-                  type="datetime-local"
+                  type="date"
                   label="Since"
                   class="input input-bordered focus:input-primary"
                 />

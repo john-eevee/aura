@@ -17,7 +17,7 @@ defmodule Aura.ClientsFixtures do
       Enum.into(attrs, %{
         industry_type: "some industry_type",
         name: unique_client_name(),
-        since: ~N[2025-09-19 23:13:00],
+        since: ~D[2025-09-19],
         status: :active
       })
 
