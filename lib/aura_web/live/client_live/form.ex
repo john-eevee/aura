@@ -67,6 +67,44 @@ defmodule AuraWeb.ClientLive.Form do
           </div>
         </div>
       </div>
+      
+    <!-- Add Contacts Confirmation Dialog -->
+      <div
+        :if={@show_add_contacts_modal}
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+        phx-click="cancel_add_contacts"
+      >
+        <div
+          class="bg-base-100 rounded-lg shadow-xl border border-base-300 p-6 max-w-md mx-4"
+          phx-click-away="cancel_add_contacts"
+        >
+          <div class="space-y-4">
+            <div class="text-center">
+              <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-success/10 mb-4">
+                <.icon name="hero-check-circle" class="h-6 w-6 text-success" />
+              </div>
+              <h3 class="text-lg font-semibold text-base-content">Client Created Successfully!</h3>
+              <p class="text-base-content/70 mt-2">
+                Would you like to add contacts for this client?
+              </p>
+            </div>
+            <div class="flex gap-3 justify-center">
+              <.button
+                phx-click="add_contacts_yes"
+                class="btn btn-primary flex-1"
+              >
+                <.icon name="hero-plus" class="w-4 h-4 mr-2" /> Yes, Add Contacts
+              </.button>
+              <.button
+                phx-click="add_contacts_no"
+                class="btn btn-ghost flex-1"
+              >
+                No, Go to Client List
+              </.button>
+            </div>
+          </div>
+        </div>
+      </div>
     </Layouts.app>
     """
   end
@@ -76,6 +114,8 @@ defmodule AuraWeb.ClientLive.Form do
     {:ok,
      socket
      |> assign(:return_to, return_to(params["return_to"]))
+     |> assign(:show_add_contacts_modal, false)
+     |> assign(:saved_client, nil)
      |> apply_action(socket.assigns.live_action, params)}
   end
 
@@ -112,6 +152,37 @@ defmodule AuraWeb.ClientLive.Form do
     save_client(socket, socket.assigns.live_action, client_params)
   end
 
+  def handle_event("add_contacts_yes", _params, socket) do
+    client = socket.assigns.saved_client
+
+    {:noreply,
+     socket
+     |> assign(:show_add_contacts_modal, false)
+     |> push_navigate(to: ~p"/contacts/new?client_id=#{client.id}")}
+  end
+
+  def handle_event("add_contacts_no", _params, socket) do
+    client = socket.assigns.saved_client
+
+    {:noreply,
+     socket
+     |> assign(:show_add_contacts_modal, false)
+     |> push_navigate(
+       to: return_path(socket.assigns.current_scope, socket.assigns.return_to, client)
+     )}
+  end
+
+  def handle_event("cancel_add_contacts", _params, socket) do
+    client = socket.assigns.saved_client
+
+    {:noreply,
+     socket
+     |> assign(:show_add_contacts_modal, false)
+     |> push_navigate(
+       to: return_path(socket.assigns.current_scope, socket.assigns.return_to, client)
+     )}
+  end
+
   defp save_client(socket, :edit, client_params) do
     case Clients.update_client(socket.assigns.current_scope, socket.assigns.client, client_params) do
       {:ok, client} ->
@@ -133,9 +204,8 @@ defmodule AuraWeb.ClientLive.Form do
         {:noreply,
          socket
          |> put_flash(:info, "Client created successfully")
-         |> push_navigate(
-           to: return_path(socket.assigns.current_scope, socket.assigns.return_to, client)
-         )}
+         |> assign(:show_add_contacts_modal, true)
+         |> assign(:saved_client, client)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, form: to_form(changeset))}

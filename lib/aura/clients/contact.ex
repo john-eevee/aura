@@ -17,7 +17,7 @@ defmodule Aura.Clients.Contact do
   @doc false
   def changeset(contact, attrs, user_scope) do
     contact
-    |> cast(attrs, [:name, :phone, :email, :role])
+    |> cast(attrs, [:name, :phone, :email, :role, :client_id])
     |> validate_required([:name, :phone, :email, :role])
     |> put_change(:user_id, user_scope.user.id)
   end

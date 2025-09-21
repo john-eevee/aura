@@ -18,6 +18,9 @@ defmodule AuraWeb.ContactLive.Form do
         <.input field={@form[:phone]} type="text" label="Phone" />
         <.input field={@form[:email]} type="text" label="Email" />
         <.input field={@form[:role]} type="text" label="Role" />
+        <%= if @client_id do %>
+          <input type="hidden" name={@form[:client_id].name} value={@client_id} />
+        <% end %>
         <footer>
           <.button phx-disable-with="Saving..." variant="primary">Save Contact</.button>
           <.button navigate={return_path(@current_scope, @return_to, @contact)}>Cancel</.button>
@@ -29,8 +32,11 @@ defmodule AuraWeb.ContactLive.Form do
 
   @impl true
   def mount(params, _session, socket) do
+    client_id = params["client_id"]
+
     {:ok,
      socket
+     |> assign(:client_id, client_id)
      |> assign(:return_to, return_to(params["return_to"]))
      |> apply_action(socket.assigns.live_action, params)}
   end
@@ -49,6 +55,14 @@ defmodule AuraWeb.ContactLive.Form do
 
   defp apply_action(socket, :new, _params) do
     contact = %Contact{user_id: socket.assigns.current_scope.user.id}
+
+    # Pre-fill client_id if provided
+    contact =
+      if socket.assigns.client_id do
+        Map.put(contact, :client_id, socket.assigns.client_id)
+      else
+        contact
+      end
 
     socket
     |> assign(:page_title, "New Contact")
