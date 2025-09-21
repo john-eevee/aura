@@ -26,22 +26,6 @@ defmodule Aura.ClientsFixtures do
   end
 
   @doc """
-  Generate a contacts.
-  """
-  def contacts_fixture(scope, attrs \\ %{}) do
-    attrs =
-      Enum.into(attrs, %{
-        email: "some email",
-        name: "some name",
-        phone: "some phone",
-        role: "some role"
-      })
-
-    {:ok, contacts} = Aura.Clients.create_contacts(scope, attrs)
-    contacts
-  end
-
-  @doc """
   Generate a contact.
   """
   def contact_fixture(scope, attrs \\ %{}) do
