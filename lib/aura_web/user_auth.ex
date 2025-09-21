@@ -179,6 +179,14 @@ defmodule AuraWeb.UserAuth do
 
   defp user_session_topic(token), do: "users_sessions:#{Base.url_encode64(token)}"
 
+  def get_user(assigns) do
+    if assigns.current_scope do
+      assigns.current_scope.user
+    else
+      nil
+    end
+  end
+
   @doc """
   Handles mounting and authenticating the current_scope in LiveViews.
 
@@ -218,7 +226,7 @@ defmodule AuraWeb.UserAuth do
   def on_mount(:require_authenticated, _params, session, socket) do
     socket = mount_current_scope(socket, session)
 
-    if socket.assigns.current_scope && socket.assigns.current_scope.user do
+    if get_user(socket.assigns) do
       {:cont, socket}
     else
       socket =
@@ -233,7 +241,7 @@ defmodule AuraWeb.UserAuth do
   def on_mount(:require_sudo_mode, _params, session, socket) do
     socket = mount_current_scope(socket, session)
 
-    if Accounts.sudo_mode?(socket.assigns.current_scope.user, -10) do
+    if Accounts.sudo_mode?(get_user(socket.assigns), -10) do
       {:cont, socket}
     else
       socket =
