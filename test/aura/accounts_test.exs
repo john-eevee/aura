@@ -394,4 +394,162 @@ defmodule Aura.AccountsTest do
       refute inspect(%User{password: "123456"}) =~ "password: \"123456\""
     end
   end
+
+  describe "permissions" do
+    alias Aura.Accounts.Permission
+
+    import Aura.AccountsFixtures
+
+    @invalid_attrs %{name: nil}
+
+    test "list_permissions/0 returns all permissions" do
+      permission = permission_fixture()
+      assert Accounts.list_permissions() == [permission]
+    end
+
+    test "get_permission!/1 returns the permission with given id" do
+      permission = permission_fixture()
+      assert Accounts.get_permission!(permission.id) == permission
+    end
+
+    test "get_permission_by_name/1 returns the permission with given name" do
+      permission = permission_fixture()
+      assert Accounts.get_permission_by_name(permission.name) == permission
+    end
+
+    test "get_permission_by_name/1 returns nil when permission does not exist" do
+      assert Accounts.get_permission_by_name("nonexistent_permission") == nil
+    end
+
+    test "create_permission/1 with valid data creates a permission" do
+      valid_attrs = %{name: "test_permission", description: "Test permission"}
+
+      assert {:ok, %Permission{} = permission} = Accounts.create_permission(valid_attrs)
+      assert permission.name == "test_permission"
+      assert permission.description == "Test permission"
+    end
+
+    test "create_permission/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Accounts.create_permission(@invalid_attrs)
+    end
+
+    test "create_permission/1 with duplicate name returns error" do
+      permission = permission_fixture()
+      attrs = %{name: permission.name, description: "Different description"}
+
+      assert {:error, %Ecto.Changeset{errors: errors}} = Accounts.create_permission(attrs)
+      assert {:name, {"has already been taken", _}} = List.keyfind(errors, :name, 0)
+    end
+
+    test "update_permission/2 with valid data updates the permission" do
+      permission = permission_fixture()
+      update_attrs = %{name: "updated_permission", description: "Updated description"}
+
+      assert {:ok, %Permission{} = permission} =
+               Accounts.update_permission(permission, update_attrs)
+
+      assert permission.name == "updated_permission"
+      assert permission.description == "Updated description"
+    end
+
+    test "update_permission/2 with invalid data returns error changeset" do
+      permission = permission_fixture()
+      assert {:error, %Ecto.Changeset{}} = Accounts.update_permission(permission, @invalid_attrs)
+      assert permission == Accounts.get_permission!(permission.id)
+    end
+
+    test "delete_permission/1 deletes the permission" do
+      permission = permission_fixture()
+      assert {:ok, %Permission{}} = Accounts.delete_permission(permission)
+      assert_raise Ecto.NoResultsError, fn -> Accounts.get_permission!(permission.id) end
+    end
+
+    test "change_permission/1 returns a permission changeset" do
+      permission = permission_fixture()
+      assert %Ecto.Changeset{} = Accounts.change_permission(permission)
+    end
+  end
+
+  describe "user permissions" do
+    import Aura.AccountsFixtures
+
+    test "assign_permission_to_user/2 assigns permission to user" do
+      user = user_fixture()
+      permission = permission_fixture()
+
+      assert {:ok, %Aura.Accounts.UserPermission{}} =
+               Accounts.assign_permission_to_user(user, permission)
+
+      user_with_permissions = Accounts.get_user_with_permissions(user.id)
+      assert length(user_with_permissions.permissions) == 1
+      assert hd(user_with_permissions.permissions).id == permission.id
+    end
+
+    test "assign_permission_to_user/2 fails when permission already assigned" do
+      user = user_fixture()
+      permission = permission_fixture()
+
+      assert {:ok, _} = Accounts.assign_permission_to_user(user, permission)
+      assert {:error, %Ecto.Changeset{}} = Accounts.assign_permission_to_user(user, permission)
+    end
+
+    test "remove_permission_from_user/2 removes permission from user" do
+      user = user_fixture()
+      permission = permission_fixture()
+
+      Accounts.assign_permission_to_user(user, permission)
+
+      assert {:ok, %Aura.Accounts.UserPermission{}} =
+               Accounts.remove_permission_from_user(user, permission)
+
+      user_with_permissions = Accounts.get_user_with_permissions(user.id)
+      assert user_with_permissions.permissions == []
+    end
+
+    test "remove_permission_from_user/2 returns error when permission not assigned" do
+      user = user_fixture()
+      permission = permission_fixture()
+
+      assert {:error, :not_found} = Accounts.remove_permission_from_user(user, permission)
+    end
+
+    test "list_user_permissions/1 returns user's permissions" do
+      user = user_with_permissions_fixture()
+      permissions = Accounts.list_user_permissions(user)
+
+      assert length(permissions) == 2
+      permission_names = Enum.map(permissions, & &1.name) |> Enum.sort()
+      assert permission_names == ["create_user", "view_user"]
+    end
+
+    test "user_has_permission?/2 returns true when user has permission" do
+      user = user_with_permissions_fixture()
+      assert Accounts.user_has_permission?(user, "create_user")
+      assert Accounts.user_has_permission?(user, "view_user")
+    end
+
+    test "user_has_permission?/2 returns false when user does not have permission" do
+      user = user_with_permissions_fixture()
+      refute Accounts.user_has_permission?(user, "delete_user")
+    end
+
+    test "user_has_any_permission?/2 returns true when user has any of the permissions" do
+      user = user_with_permissions_fixture()
+      assert Accounts.user_has_any_permission?(user, ["create_user", "delete_user"])
+      assert Accounts.user_has_any_permission?(user, ["delete_user", "view_user"])
+    end
+
+    test "user_has_any_permission?/2 returns false when user has none of the permissions" do
+      user = user_with_permissions_fixture()
+      refute Accounts.user_has_any_permission?(user, ["delete_user", "update_user"])
+    end
+
+    test "get_user_with_permissions/1 returns user with preloaded permissions" do
+      user = user_with_permissions_fixture()
+      user_with_permissions = Accounts.get_user_with_permissions(user.id)
+
+      assert user_with_permissions.id == user.id
+      assert length(user_with_permissions.permissions) == 2
+    end
+  end
 end

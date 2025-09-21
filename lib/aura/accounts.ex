@@ -6,7 +6,7 @@ defmodule Aura.Accounts do
   import Ecto.Query, warn: false
   alias Aura.Repo
 
-  alias Aura.Accounts.{User, UserToken, UserNotifier}
+  alias Aura.Accounts.{User, UserToken, UserNotifier, Permission, UserPermission}
 
   ## Database getters
 
@@ -23,7 +23,7 @@ defmodule Aura.Accounts do
 
   """
   def get_user_by_email(email) when is_binary(email) do
-    Repo.get_by(User, email: email)
+    Repo.get_by(User, email: email) |> Repo.preload(:permissions)
   end
 
   @doc """
@@ -41,7 +41,7 @@ defmodule Aura.Accounts do
   def get_user_by_email_and_password(email, password)
       when is_binary(email) and is_binary(password) do
     user = Repo.get_by(User, email: email)
-    if User.valid_password?(user, password), do: user
+    if User.valid_password?(user, password), do: Repo.preload(user, :permissions)
   end
 
   @doc """
@@ -58,7 +58,7 @@ defmodule Aura.Accounts do
       ** (Ecto.NoResultsError)
 
   """
-  def get_user!(id), do: Repo.get!(User, id)
+  def get_user!(id), do: Repo.get!(User, id) |> Repo.preload(:permissions)
 
   ## User registration
 
@@ -125,7 +125,7 @@ defmodule Aura.Accounts do
            {:ok, user} <- Repo.update(User.email_changeset(user, %{email: email})),
            {_count, _result} <-
              Repo.delete_all(from(UserToken, where: [user_id: ^user.id, context: ^context])) do
-        {:ok, user}
+        {:ok, Repo.preload(user, :permissions)}
       else
         _ -> {:error, :transaction_aborted}
       end
@@ -185,7 +185,11 @@ defmodule Aura.Accounts do
   """
   def get_user_by_session_token(token) do
     {:ok, query} = UserToken.verify_session_token_query(token)
-    Repo.one(query)
+
+    case Repo.one(query) do
+      {user, token_inserted_at} -> {Repo.preload(user, :permissions), token_inserted_at}
+      nil -> nil
+    end
   end
 
   @doc """
@@ -194,7 +198,7 @@ defmodule Aura.Accounts do
   def get_user_by_magic_link_token(token) do
     with {:ok, query} <- UserToken.verify_magic_link_token_query(token),
          {user, _token} <- Repo.one(query) do
-      user
+      Repo.preload(user, :permissions)
     else
       _ -> nil
     end
@@ -239,7 +243,7 @@ defmodule Aura.Accounts do
 
       {user, token} ->
         Repo.delete!(token)
-        {:ok, {user, []}}
+        {:ok, {Repo.preload(user, :permissions), []}}
 
       nil ->
         {:error, :not_found}
@@ -281,6 +285,213 @@ defmodule Aura.Accounts do
     :ok
   end
 
+  ## Permissions
+
+  @doc """
+  Gets a permission by name.
+
+  ## Examples
+
+      iex> get_permission_by_name("create_user")
+      %Permission{}
+
+      iex> get_permission_by_name("unknown")
+      nil
+  """
+  def get_permission_by_name(name) when is_binary(name) do
+    Repo.get_by(Permission, name: name)
+  end
+
+  @doc """
+  Gets a single permission.
+
+  Raises `Ecto.NoResultsError` if the Permission does not exist.
+
+  ## Examples
+
+      iex> get_permission!("123")
+      %Permission{}
+
+      iex> get_permission!("456")
+      ** (Ecto.NoResultsError)
+  """
+  def get_permission!(id), do: Repo.get!(Permission, id)
+
+  @doc """
+  Lists all permissions.
+
+  ## Examples
+
+      iex> list_permissions()
+      [%Permission{}, ...]
+  """
+  def list_permissions do
+    Repo.all(Permission)
+  end
+
+  @doc """
+  Creates a permission.
+
+  ## Examples
+
+      iex> create_permission(%{name: "create_user", description: "Can create users"})
+      {:ok, %Permission{}}
+
+      iex> create_permission(%{name: ""})
+      {:error, %Ecto.Changeset{}}
+  """
+  def create_permission(attrs \\ %{}) do
+    %Permission{}
+    |> Permission.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a permission.
+
+  ## Examples
+
+      iex> update_permission(permission, %{description: "New description"})
+      {:ok, %Permission{}}
+
+      iex> update_permission(permission, %{name: ""})
+      {:error, %Ecto.Changeset{}}
+  """
+  def update_permission(%Permission{} = permission, attrs) do
+    permission
+    |> Permission.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a permission.
+
+  ## Examples
+
+      iex> delete_permission(permission)
+      {:ok, %Permission{}}
+
+      iex> delete_permission(permission)
+      {:error, %Ecto.Changeset{}}
+  """
+  def delete_permission(%Permission{} = permission) do
+    Repo.delete(permission)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking permission changes.
+
+  ## Examples
+
+      iex> change_permission(permission)
+      %Ecto.Changeset{data: %Permission{}}
+  """
+  def change_permission(%Permission{} = permission, attrs \\ %{}) do
+    Permission.changeset(permission, attrs)
+  end
+
+  @doc """
+  Assigns a permission to a user.
+
+  ## Examples
+
+      iex> assign_permission_to_user(user, permission)
+      {:ok, %UserPermission{}}
+
+      iex> assign_permission_to_user(user, permission)
+      {:error, %Ecto.Changeset{}} # already assigned
+  """
+  def assign_permission_to_user(%User{} = user, %Permission{} = permission) do
+    %UserPermission{}
+    |> UserPermission.changeset(%{user_id: user.id, permission_id: permission.id})
+    |> Repo.insert()
+  end
+
+  @doc """
+  Removes a permission from a user.
+
+  ## Examples
+
+      iex> remove_permission_from_user(user, permission)
+      {:ok, %UserPermission{}}
+
+      iex> remove_permission_from_user(user, permission)
+      {:error, %Ecto.NoResultsError{}} # not assigned
+  """
+  def remove_permission_from_user(%User{} = user, %Permission{} = permission) do
+    case Repo.get_by(UserPermission, user_id: user.id, permission_id: permission.id) do
+      nil -> {:error, :not_found}
+      user_permission -> Repo.delete(user_permission)
+    end
+  end
+
+  @doc """
+  Lists all permissions for a user.
+
+  ## Examples
+
+      iex> list_user_permissions(user)
+      [%Permission{}, ...]
+  """
+  def list_user_permissions(%User{} = user) do
+    user
+    |> Repo.preload(:permissions)
+    |> Map.get(:permissions)
+  end
+
+  @doc """
+  Checks if a user has a specific permission.
+
+  ## Examples
+
+      iex> user_has_permission?(user, "create_user")
+      true
+
+      iex> user_has_permission?(user, "delete_user")
+      false
+  """
+  def user_has_permission?(%User{} = user, permission_name) when is_binary(permission_name) do
+    user
+    |> Repo.preload(:permissions)
+    |> Map.get(:permissions)
+    |> Enum.any?(&(&1.name == permission_name))
+  end
+
+  @doc """
+  Checks if a user has any of the given permissions.
+
+  ## Examples
+
+      iex> user_has_any_permission?(user, ["create_user", "update_user"])
+      true
+
+      iex> user_has_any_permission?(user, ["delete_user", "admin_user"])
+      false
+  """
+  def user_has_any_permission?(%User{} = user, permission_names) when is_list(permission_names) do
+    user_permissions = list_user_permissions(user)
+    permission_names_set = MapSet.new(permission_names)
+    user_permission_names = MapSet.new(Enum.map(user_permissions, & &1.name))
+
+    MapSet.intersection(permission_names_set, user_permission_names)
+    |> MapSet.size() > 0
+  end
+
+  @doc """
+  Gets a user with preloaded permissions.
+
+  ## Examples
+
+      iex> get_user_with_permissions("123")
+      %User{permissions: [%Permission{}, ...]}
+
+      iex> get_user_with_permissions("456")
+      nil
+  """
+  def get_user_with_permissions(id) do
+    Repo.get(User, id) |> Repo.preload(:permissions)
+  end
+
   ## Token helper
 
   defp update_user_and_delete_all_tokens(changeset) do
@@ -290,7 +501,7 @@ defmodule Aura.Accounts do
 
         Repo.delete_all(from(t in UserToken, where: t.id in ^Enum.map(tokens_to_expire, & &1.id)))
 
-        {:ok, {user, tokens_to_expire}}
+        {:ok, {Repo.preload(user, :permissions), tokens_to_expire}}
       end
     end)
   end

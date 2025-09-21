@@ -11,6 +11,9 @@ defmodule Aura.Accounts.User do
     field :confirmed_at, :utc_datetime
     field :authenticated_at, :utc_datetime, virtual: true
 
+    many_to_many :permissions, Aura.Accounts.Permission,
+      join_through: Aura.Accounts.UserPermission
+
     timestamps(type: :utc_datetime)
   end
 

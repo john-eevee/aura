@@ -86,4 +86,40 @@ defmodule Aura.AccountsFixtures do
       set: [inserted_at: dt, authenticated_at: dt]
     )
   end
+
+  def unique_permission_name do
+    letters = Enum.take_random(?a..?z, 5) |> List.to_string()
+    "test_#{letters}"
+  end
+
+  def valid_permission_attributes(attrs \\ %{}) do
+    Enum.into(attrs, %{
+      name: unique_permission_name(),
+      description: "Test permission description"
+    })
+  end
+
+  def permission_fixture(attrs \\ %{}) do
+    {:ok, permission} =
+      attrs
+      |> valid_permission_attributes()
+      |> Accounts.create_permission()
+
+    permission
+  end
+
+  def user_with_permissions_fixture(attrs \\ %{}) do
+    user = user_fixture(attrs)
+
+    permissions = [
+      permission_fixture(%{name: "create_user", description: "Can create users"}),
+      permission_fixture(%{name: "view_user", description: "Can view users"})
+    ]
+
+    Enum.each(permissions, fn permission ->
+      Accounts.assign_permission_to_user(user, permission)
+    end)
+
+    Accounts.get_user_with_permissions(user.id)
+  end
 end

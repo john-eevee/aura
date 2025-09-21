@@ -31,7 +31,7 @@ defmodule AuraWeb.DashboardLive.Index do
           </div>
         </div>
         <!-- Quick Actions -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <!-- Clients Management -->
           <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 border border-base-300">
             <div class="card-body text-center">
@@ -93,6 +93,27 @@ defmodule AuraWeb.DashboardLive.Index do
                 class="btn btn-accent btn-block"
               >
                 <.icon name="hero-phone" class="w-5 h-5 mr-2" /> View Contacts
+              </.button>
+            </div>
+          </div>
+          <!-- Permissions Management -->
+          <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 border border-base-300">
+            <div class="card-body text-center">
+              <div class="w-16 h-16 bg-gradient-to-br from-info to-info/70 rounded-full flex items-center justify-center mx-auto mb-4">
+                <.icon name="hero-shield-check" class="text-2xl text-white" />
+              </div>
+
+              <h3 class="card-title justify-center text-xl font-bold mb-2">Permissions</h3>
+
+              <p class="text-base-content/70 mb-4">
+                Manage user permissions and access control. Control what users can do in the system.
+              </p>
+
+              <.button
+                navigate={~p"/permissions"}
+                class="btn btn-info btn-block"
+              >
+                <.icon name="hero-shield-check" class="w-5 h-5 mr-2" /> Manage Permissions
               </.button>
             </div>
           </div>
