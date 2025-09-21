@@ -281,4 +281,53 @@ defmodule Aura.Clients do
 
     Contact.changeset(contact, attrs, scope)
   end
+
+  @doc """
+  Returns the count of clients for the given scope.
+
+  ## Examples
+
+      iex> count_clients(scope)
+      5
+
+  """
+  def count_clients(%Scope{} = scope) do
+    Client
+    |> where([c], c.user_id == ^scope.user.id)
+    |> Repo.aggregate(:count)
+  end
+
+  @doc """
+  Returns the count of contacts for the given scope.
+
+  ## Examples
+
+      iex> count_contacts(scope)
+      12
+
+  """
+  def count_contacts(%Scope{} = scope) do
+    Contact
+    |> where([c], c.user_id == ^scope.user.id)
+    |> Repo.aggregate(:count)
+  end
+
+  @doc """
+  Returns a list of recent clients for the given scope.
+
+  ## Examples
+
+      iex> list_recent_clients(scope, limit: 5)
+      [%Client{}, ...]
+
+  """
+  def list_recent_clients(%Scope{} = scope, opts \\ []) do
+    limit = Keyword.get(opts, :limit, 10)
+
+    Client
+    |> where([c], c.user_id == ^scope.user.id)
+    |> order_by([c], desc: c.inserted_at)
+    |> limit(^limit)
+    |> Repo.all()
+  end
 end
