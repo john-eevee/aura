@@ -165,3 +165,60 @@ body {
   color: oklch(var(--color-base-content));
   margin-bottom: 0.5rem;
 }
+
+/* Grid pattern background for hero section */
+.bg-grid-pattern {
+  background-image:
+    linear-gradient(rgba(var(--color-base-content), 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--color-base-content), 0.03) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Custom animations for floating elements */
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+  animation: float 6s ease-in-out infinite;
+  animation-delay: 2s;
+}
+
+/* Enhanced button hover effects */
+.btn-primary:hover {
+  box-shadow: 0 4px 14px 0 rgba(var(--color-primary), 0.4);
+}
+
+.btn-outline:hover {
+  box-shadow: 0 4px 14px 0 rgba(var(--color-base-content), 0.1);
+}
+
+/* Gradient text effect */
+.gradient-text {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary), var(--color-accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Card hover enhancements */
+.card:hover .card-body {
+  transform: translateY(-2px);
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
