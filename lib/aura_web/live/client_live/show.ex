@@ -7,25 +7,70 @@ defmodule AuraWeb.ClientLive.Show do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <.header>
-        Client {@client.id}
-        <:subtitle>This is a client record from your database.</:subtitle>
-        <:actions>
-          <.button navigate={~p"/clients"}>
-            <.icon name="hero-arrow-left" />
-          </.button>
-          <.button variant="primary" navigate={~p"/clients/#{@client}/edit?return_to=show"}>
-            <.icon name="hero-pencil-square" /> Edit client
-          </.button>
-        </:actions>
-      </.header>
+      <div class="max-w-4xl mx-auto space-y-6">
+        <div class="card bg-base-100 shadow-xl border border-base-300">
+          <div class="card-body">
+            <.header>
+              Client Details
+              <:subtitle>This is a client record from your database.</:subtitle>
+              <:actions>
+                <.button navigate={~p"/clients"} class="btn btn-ghost btn-sm">
+                  <.icon name="hero-arrow-left" class="w-4 h-4 mr-2" /> Back to Clients
+                </.button>
+                <.button
+                  variant="primary"
+                  navigate={~p"/clients/#{@client}/edit?return_to=show"}
+                  class="btn btn-primary btn-sm"
+                >
+                  <.icon name="hero-pencil-square" class="w-4 h-4 mr-2" /> Edit Client
+                </.button>
+              </:actions>
+            </.header>
+          </div>
+        </div>
 
-      <.list>
-        <:item title="Name">{@client.name}</:item>
-        <:item title="Since">{@client.since}</:item>
-        <:item title="Status">{@client.status}</:item>
-        <:item title="Industry type">{@client.industry_type}</:item>
-      </.list>
+        <div class="card bg-base-100 shadow-xl border border-base-300">
+          <div class="card-body">
+            <h3 class="text-xl font-semibold mb-6 text-base-content">Client Information</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="space-y-2">
+                <dt class="text-sm font-medium text-base-content/70 uppercase tracking-wide">Name</dt>
+                <dd class="text-lg font-medium text-base-content">{@client.name}</dd>
+              </div>
+              <div class="space-y-2">
+                <dt class="text-sm font-medium text-base-content/70 uppercase tracking-wide">
+                  Industry Type
+                </dt>
+                <dd class="text-lg font-medium text-base-content">{@client.industry_type}</dd>
+              </div>
+              <div class="space-y-2">
+                <dt class="text-sm font-medium text-base-content/70 uppercase tracking-wide">
+                  Since
+                </dt>
+                <dd class="text-lg font-medium text-base-content">{@client.since}</dd>
+              </div>
+              <div class="space-y-2">
+                <dt class="text-sm font-medium text-base-content/70 uppercase tracking-wide">
+                  Status
+                </dt>
+                <dd>
+                  <span class={[
+                    "inline-flex items-center px-3 py-1 rounded-full text-sm font-medium",
+                    @client.status == :active &&
+                      "bg-success/10 text-success border border-success/20",
+                    @client.status == :inactive &&
+                      "bg-base-300 text-base-content/70 border border-base-content/20",
+                    @client.status == :pending &&
+                      "bg-warning/10 text-warning border border-warning/20"
+                  ]}>
+                    {String.capitalize(to_string(@client.status))}
+                  </span>
+                </dd>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </Layouts.app>
     """
   end

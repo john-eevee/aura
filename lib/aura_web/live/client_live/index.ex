@@ -7,39 +7,85 @@ defmodule AuraWeb.ClientLive.Index do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <.header>
-        Listing Clients
-        <:actions>
-          <.button variant="primary" navigate={~p"/clients/new"}>
-            <.icon name="hero-plus" /> New Client
-          </.button>
-        </:actions>
-      </.header>
-
-      <.table
-        id="clients"
-        rows={@streams.clients}
-        row_click={fn {_id, client} -> JS.navigate(~p"/clients/#{client}") end}
-      >
-        <:col :let={{_id, client}} label="Name">{client.name}</:col>
-        <:col :let={{_id, client}} label="Since">{client.since}</:col>
-        <:col :let={{_id, client}} label="Status">{client.status}</:col>
-        <:col :let={{_id, client}} label="Industry type">{client.industry_type}</:col>
-        <:action :let={{_id, client}}>
-          <div class="sr-only">
-            <.link navigate={~p"/clients/#{client}"}>Show</.link>
+      <div class="space-y-6">
+        <div class="card bg-base-100 shadow-xl border border-base-300">
+          <div class="card-body">
+            <.header>
+              Client Management
+              <:subtitle>Manage your client database and track their information.</:subtitle>
+              <:actions>
+                <.button variant="primary" navigate={~p"/clients/new"} class="btn btn-primary btn-lg">
+                  <.icon name="hero-plus" class="w-5 h-5 mr-2" /> New Client
+                </.button>
+              </:actions>
+            </.header>
           </div>
-          <.link navigate={~p"/clients/#{client}/edit"}>Edit</.link>
-        </:action>
-        <:action :let={{id, client}}>
-          <.link
-            phx-click={JS.push("delete", value: %{id: client.id}) |> hide("##{id}")}
-            data-confirm="Are you sure?"
-          >
-            Delete
-          </.link>
-        </:action>
-      </.table>
+        </div>
+
+        <div class="card bg-base-100 shadow-xl border border-base-300">
+          <div class="card-body">
+            <div class="overflow-x-auto">
+              <.table
+                id="clients"
+                rows={@streams.clients}
+                row_click={fn {_id, client} -> JS.navigate(~p"/clients/#{client}") end}
+              >
+                <:col :let={{_id, client}} label="Name">
+                  <div class="flex items-center gap-3">
+                    <div class="avatar placeholder">
+                      <div class="bg-primary text-primary-content rounded-full w-8">
+                        <span class="text-xs font-bold">{String.first(client.name)}</span>
+                      </div>
+                    </div>
+                    <span class="font-medium">{client.name}</span>
+                  </div>
+                </:col>
+                <:col :let={{_id, client}} label="Since">
+                  {client.since}
+                </:col>
+                <:col :let={{_id, client}} label="Status">
+                  <span class={[
+                    "inline-flex items-center px-2 py-1 rounded-full text-xs font-medium",
+                    client.status == :active && "bg-success/10 text-success border border-success/20",
+                    client.status == :inactive &&
+                      "bg-base-300 text-base-content/70 border border-base-content/20",
+                    client.status == :pending && "bg-warning/10 text-warning border border-warning/20"
+                  ]}>
+                    {String.capitalize(to_string(client.status))}
+                  </span>
+                </:col>
+                <:col :let={{_id, client}} label="Industry">
+                  {client.industry_type}
+                </:col>
+                <:action :let={{_id, client}}>
+                  <div class="flex gap-2">
+                    <.link navigate={~p"/clients/#{client}"} class="btn btn-ghost btn-sm" title="View">
+                      <.icon name="hero-eye" class="w-4 h-4" />
+                    </.link>
+                    <.link
+                      navigate={~p"/clients/#{client}/edit"}
+                      class="btn btn-ghost btn-sm"
+                      title="Edit"
+                    >
+                      <.icon name="hero-pencil-square" class="w-4 h-4" />
+                    </.link>
+                  </div>
+                </:action>
+                <:action :let={{id, client}}>
+                  <.link
+                    phx-click={JS.push("delete", value: %{id: client.id}) |> hide("##{id}")}
+                    data-confirm="Are you sure?"
+                    class="btn btn-ghost btn-sm text-error hover:bg-error/10"
+                    title="Delete"
+                  >
+                    <.icon name="hero-trash" class="w-4 h-4" />
+                  </.link>
+                </:action>
+              </.table>
+            </div>
+          </div>
+        </div>
+      </div>
     </Layouts.app>
     """
   end

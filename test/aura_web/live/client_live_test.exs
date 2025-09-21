@@ -68,7 +68,7 @@ defmodule AuraWeb.ClientLiveTest do
 
       assert {:ok, form_live, _html} =
                index_live
-               |> element("#clients-#{client.id} a", "Edit")
+               |> element("#clients-#{client.id} a[title='Edit']")
                |> render_click()
                |> follow_redirect(conn, ~p"/clients/#{client}/edit")
 
@@ -92,7 +92,7 @@ defmodule AuraWeb.ClientLiveTest do
     test "deletes client in listing", %{conn: conn, client: client} do
       {:ok, index_live, _html} = live(conn, ~p"/clients")
 
-      assert index_live |> element("#clients-#{client.id} a", "Delete") |> render_click()
+      assert index_live |> element("#clients-#{client.id} a[title='Delete']") |> render_click()
       refute has_element?(index_live, "#clients-#{client.id}")
     end
   end

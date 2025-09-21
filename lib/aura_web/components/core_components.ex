@@ -288,12 +288,12 @@ defmodule AuraWeb.CoreComponents do
 
   def header(assigns) do
     ~H"""
-    <header class={[@actions != [] && "flex items-center justify-between gap-6", "pb-4"]}>
-      <div>
-        <h1 class="text-lg font-semibold leading-8">
+    <header class={[@actions != [] && "flex items-center justify-between gap-6", "pb-6"]}>
+      <div class="space-y-2">
+        <h1 class="text-2xl font-bold leading-8 text-base-content">
           {render_slot(@inner_block)}
         </h1>
-        <p :if={@subtitle != []} class="text-sm text-base-content/70">
+        <p :if={@subtitle != []} class="text-base text-base-content/60 leading-relaxed">
           {render_slot(@subtitle)}
         </p>
       </div>

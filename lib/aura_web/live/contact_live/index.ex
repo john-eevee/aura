@@ -67,7 +67,8 @@ defmodule AuraWeb.ContactLive.Index do
   @impl true
   def handle_info({type, %Aura.Clients.Contact{}}, socket)
       when type in [:created, :updated, :deleted] do
-    {:noreply, stream(socket, :contacts, list_contacts(socket.assigns.current_scope), reset: true)}
+    {:noreply,
+     stream(socket, :contacts, list_contacts(socket.assigns.current_scope), reset: true)}
   end
 
   defp list_contacts(current_scope) do

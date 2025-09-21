@@ -5,7 +5,12 @@ defmodule AuraWeb.ContactLiveTest do
   import Aura.ClientsFixtures
 
   @create_attrs %{name: "some name", role: "some role", phone: "some phone", email: "some email"}
-  @update_attrs %{name: "some updated name", role: "some updated role", phone: "some updated phone", email: "some updated email"}
+  @update_attrs %{
+    name: "some updated name",
+    role: "some updated role",
+    phone: "some updated phone",
+    email: "some updated email"
+  }
   @invalid_attrs %{name: nil, role: nil, phone: nil, email: nil}
 
   setup :register_and_log_in_user

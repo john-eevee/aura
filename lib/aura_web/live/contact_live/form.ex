@@ -58,7 +58,9 @@ defmodule AuraWeb.ContactLive.Form do
 
   @impl true
   def handle_event("validate", %{"contact" => contact_params}, socket) do
-    changeset = Clients.change_contact(socket.assigns.current_scope, socket.assigns.contact, contact_params)
+    changeset =
+      Clients.change_contact(socket.assigns.current_scope, socket.assigns.contact, contact_params)
+
     {:noreply, assign(socket, form: to_form(changeset, action: :validate))}
   end
 
@@ -67,7 +69,11 @@ defmodule AuraWeb.ContactLive.Form do
   end
 
   defp save_contact(socket, :edit, contact_params) do
-    case Clients.update_contact(socket.assigns.current_scope, socket.assigns.contact, contact_params) do
+    case Clients.update_contact(
+           socket.assigns.current_scope,
+           socket.assigns.contact,
+           contact_params
+         ) do
       {:ok, contact} ->
         {:noreply,
          socket
