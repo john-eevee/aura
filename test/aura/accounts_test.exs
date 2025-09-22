@@ -58,7 +58,8 @@ defmodule Aura.AccountsTest do
     test "validates email when given" do
       {:error, changeset} = Accounts.register_user(%{email: "not valid"})
 
-      assert %{email: ["is not allowed to register", "must have the @ sign and no spaces"]} = errors_on(changeset)
+      assert %{email: ["is not allowed to register", "must have the @ sign and no spaces"]} =
+               errors_on(changeset)
     end
 
     test "validates maximum values for email for security" do

@@ -34,7 +34,10 @@ defmodule AuraWeb.PermissionsLive.FormComponent do
           label="Description"
           placeholder="Describe what this permission allows"
         />
-        <:actions><.button phx-disable-with="Saving...">Save Permission</.button></:actions>
+
+        <div class="flex justify-end">
+          <.button phx-disable-with="Saving...">Save Permission</.button>
+        </div>
       </.form>
     </div>
     """

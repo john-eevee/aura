@@ -5,8 +5,10 @@ defmodule Aura.Accounts.AllowlistEntry do
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
   schema "allowlist_entries" do
-    field :type, :string # "email" or "domain"
-    field :value, :string # email address or domain name
+    # "email" or "domain"
+    field :type, :string
+    # email address or domain name
+    field :value, :string
     field :description, :string
     field :enabled, :boolean, default: true
 

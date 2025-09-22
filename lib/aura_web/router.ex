@@ -67,6 +67,17 @@ defmodule AuraWeb.Router do
       live "/contacts", ContactLive.Index, :index
       live "/contacts/:id", ContactLive.Show, :show
       live "/contacts/:id/edit", ContactLive.Form, :edit
+      # Projects
+      live "/projects", ProjectsLive.Index, :index
+      live "/projects/new", ProjectsLive.Index, :new
+      live "/projects/:id/edit", ProjectsLive.Index, :edit
+      live "/projects/:id", ProjectsLive.Show, :show
+      live "/projects/:id/subprojects", ProjectsLive.Show, :show
+      live "/projects/:id/bom", ProjectsLive.Show, :show
+      live "/projects/:id/subprojects/new", ProjectsLive.Show, :new_subproject
+      live "/projects/:id/subprojects/:subproject_id/edit", ProjectsLive.Show, :edit_subproject
+      live "/projects/:id/bom/new", ProjectsLive.Show, :new_bom
+      live "/projects/:id/bom/:bom_id/edit", ProjectsLive.Show, :edit_bom
     end
 
     post "/users/update-password", UserSessionController, :update_password

@@ -443,6 +443,209 @@ defmodule AuraWeb.CoreComponents do
   end
 
   @doc """
+  Executes JavaScript on a selector.
+
+  ## Examples
+
+      js_exec("##modal-content")
+  """
+  def js_exec(js \\ %JS{}, selector) do
+    JS.dispatch(js, "js:exec", to: selector)
+  end
+
+  @doc """
+  Renders a modal.
+
+  ## Examples
+
+      <.modal id="confirm-modal">
+        This is a modal.
+      </.modal>
+  """
+  attr :id, :string, required: true
+  attr :show, :boolean, default: false
+  attr :on_cancel, JS, default: %JS{}
+  slot :inner_block, required: true
+
+  def modal(assigns) do
+    ~H"""
+    <div
+      id={@id}
+      phx-mounted={@show && show_modal(@id)}
+      phx-remove={hide_modal(@id)}
+      data-cancel={JS.exec(@on_cancel, "phx-remove")}
+      class="relative z-50 hidden"
+    >
+      <div id={"#{@id}-bg"} class="bg-black/50 fixed inset-0 transition-opacity" aria-hidden="true" />
+      <div
+        class="fixed inset-0 overflow-y-auto"
+        aria-labelledby={"#{@id}-title"}
+        aria-describedby={"#{@id}-description"}
+        role="dialog"
+        aria-modal="true"
+        tabindex="0"
+      >
+        <div class="flex min-h-full items-center justify-center">
+          <div class="w-full max-w-3xl p-4 sm:p-6 lg:py-8">
+            <.focus_wrap
+              id={"#{@id}-container"}
+              phx-window-keydown={JS.exec("data-cancel", to: "##{@id}")}
+              phx-key="escape"
+              phx-click-away={JS.exec("data-cancel", to: "##{@id}")}
+              class="shadow-black/50 shadow-lg relative hidden bg-white rounded-lg p-14"
+            >
+              <div class="absolute top-6 right-5">
+                <button
+                  phx-click={JS.exec("data-cancel", to: "##{@id}")}
+                  type="button"
+                  class="-m-3 flex-none p-3 opacity-20 hover:opacity-40"
+                  aria-label={gettext("close")}
+                >
+                  <.icon name="hero-x-mark-solid" class="h-5 w-5" />
+                </button>
+              </div>
+              <div id={"#{@id}-content"}>
+                {render_slot(@inner_block)}
+              </div>
+            </.focus_wrap>
+          </div>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
+  @doc """
+  Shows the modal.
+  """
+  def show_modal(js \\ %JS{}, id) do
+    js
+    |> JS.show(to: "##{id}")
+    |> JS.show(
+      to: "##{id}-bg",
+      transition: {"transition-all transform ease-out duration-300", "opacity-0", "opacity-100"}
+    )
+    |> JS.show(
+      to: "##{id}-container",
+      transition:
+        {"transition-all transform ease-out duration-300",
+         "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95",
+         "opacity-100 translate-y-0 sm:scale-100"}
+    )
+    |> js_exec("##{id}-content")
+  end
+
+  @doc """
+  Hides the modal.
+  """
+  def hide_modal(js \\ %JS{}, id) do
+    js
+    |> JS.hide(
+      to: "##{id}-bg",
+      transition: {"transition-all transform ease-in duration-200", "opacity-100", "opacity-0"}
+    )
+    |> JS.hide(
+      to: "##{id}-container",
+      time: 200,
+      transition:
+        {"transition-all transform ease-in duration-200",
+         "opacity-100 translate-y-0 sm:scale-100",
+         "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"}
+    )
+    |> hide()
+    |> js_exec("##{id}-content")
+  end
+
+  @doc """
+  Renders a badge.
+
+  ## Examples
+
+      <.badge>Default</.badge>
+      <.badge variant="success">Success</.badge>
+  """
+  attr :variant, :string,
+    default: "default",
+    values: ~w(default success warning danger info secondary)
+
+  slot :inner_block, required: true
+
+  def badge(assigns) do
+    ~H"""
+    <span class={[
+      "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
+      badge_variant(@variant)
+    ]}>
+      {render_slot(@inner_block)}
+    </span>
+    """
+  end
+
+  defp badge_variant("default"), do: "bg-gray-100 text-gray-800"
+  defp badge_variant("success"), do: "bg-green-100 text-green-800"
+  defp badge_variant("warning"), do: "bg-yellow-100 text-yellow-800"
+  defp badge_variant("danger"), do: "bg-red-100 text-red-800"
+  defp badge_variant("info"), do: "bg-blue-100 text-blue-800"
+  defp badge_variant("secondary"), do: "bg-gray-100 text-gray-600"
+
+  @doc """
+  Renders a set of tabs.
+
+  ## Examples
+
+      <.tabs active="overview">
+        <.tab id="overview">Overview</.tab>
+        <.tab id="settings">Settings</.tab>
+      </.tabs>
+  """
+  attr :active, :string, required: true
+  slot :inner_block, required: true
+
+  def tabs(assigns) do
+    ~H"""
+    <div class="border-b border-gray-200">
+      <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+        {render_slot(@inner_block)}
+      </nav>
+    </div>
+    """
+  end
+
+  @doc """
+  Renders a tab.
+
+  ## Examples
+
+      <.tab id="overview" active={@active_tab == "overview"}>
+        Overview
+      </.tab>
+  """
+  attr :id, :string, required: true
+  attr :active, :boolean, default: false
+  attr :rest, :global
+  slot :inner_block, required: true
+
+  def tab(assigns) do
+    ~H"""
+    <a
+      id={@id}
+      class={[
+        "whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm",
+        tab_classes(@active)
+      ]}
+      {@rest}
+    >
+      {render_slot(@inner_block)}
+    </a>
+    """
+  end
+
+  defp tab_classes(true), do: "border-indigo-500 text-indigo-600"
+
+  defp tab_classes(false),
+    do: "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+
+  @doc """
   Translates an error message using gettext.
   """
   def translate_error({msg, opts}) do

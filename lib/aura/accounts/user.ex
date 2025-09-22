@@ -30,7 +30,7 @@ defmodule Aura.Accounts.User do
     |> validate_allowlist()
   end
 
-   @doc """
+  @doc """
   A user changeset for registering or changing the email.
 
   It requires the email to change otherwise an error is added.

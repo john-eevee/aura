@@ -4,8 +4,10 @@ defmodule Aura.Repo.Migrations.CreateAllowlistEntries do
   def change do
     create table(:allowlist_entries, primary_key: false) do
       add :id, :binary_id, primary_key: true
-      add :type, :string, null: false # "email" or "domain"
-      add :value, :string, null: false # email address or domain name
+      # "email" or "domain"
+      add :type, :string, null: false
+      # email address or domain name
+      add :value, :string, null: false
       add :description, :text
       add :enabled, :boolean, default: true, null: false
 

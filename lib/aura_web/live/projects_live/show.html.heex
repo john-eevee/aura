@@ -1,0 +1,170 @@
+<.header>
+  {@project.name}
+  <:subtitle>{@project.description}</:subtitle>
+
+  <:actions>
+    <.link patch={~p"/projects/#{@project}/edit"}><.button>Edit project</.button></.link>
+  </:actions>
+</.header>
+
+<div class="mb-6">
+  <.tabs active={@active_tab}>
+    <.tab
+      id="overview"
+      active={@active_tab == :overview}
+      phx-click="change_tab"
+      phx-value-tab="overview"
+    >
+      Overview
+    </.tab>
+
+    <.tab
+      id="subprojects"
+      active={@active_tab == :subprojects}
+      phx-click="change_tab"
+      phx-value-tab="subprojects"
+    >
+      Subprojects
+    </.tab>
+
+    <.tab id="bom" active={@active_tab == :bom} phx-click="change_tab" phx-value-tab="bom">
+      Bill of Materials
+    </.tab>
+  </.tabs>
+</div>
+
+<div :if={@active_tab == :overview}>
+  <.list>
+    <:item title="Client">TODO: Add client name when scope is available</:item>
+
+    <:item title="Status">
+      <.badge variant={status_badge_variant(@project.status)}>
+        {Phoenix.Naming.humanize(@project.status)}
+      </.badge>
+    </:item>
+
+    <:item title="Created">{@project.inserted_at |> Calendar.strftime("%B %d, %Y")}</:item>
+
+    <:item title="Updated">{@project.updated_at |> Calendar.strftime("%B %d, %Y")}</:item>
+  </.list>
+</div>
+
+<div :if={@active_tab == :subprojects}>
+  <.header>
+    Subprojects
+    <:actions>
+      <.link patch={~p"/projects/#{@project}/subprojects/new"}>
+        <.button>New Subproject</.button>
+      </.link>
+    </:actions>
+  </.header>
+
+  <.table id="subprojects" rows={@project.subprojects}>
+    <:col :let={subproject} label="Name">{subproject.name}</:col>
+
+    <:col :let={subproject} label="Platform">
+      <.badge variant="info">{Phoenix.Naming.humanize(subproject.platform)}</.badge>
+    </:col>
+
+    <:col :let={subproject} label="Description">{subproject.description}</:col>
+
+    <:action :let={subproject}>
+      <.link patch={~p"/projects/#{@project}/subprojects/#{subproject}/edit"}>Edit</.link>
+    </:action>
+
+    <:action :let={subproject}>
+      <.link
+        phx-click="delete_subproject"
+        phx-value-id={subproject.id}
+        data-confirm="Are you sure?"
+      >
+        Delete
+      </.link>
+    </:action>
+  </.table>
+</div>
+
+<div :if={@active_tab == :bom}>
+  <.header>
+    Bill of Materials
+    <:actions>
+      <.link patch={~p"/projects/#{@project}/bom/new"}><.button>Add BOM Entry</.button></.link>
+    </:actions>
+  </.header>
+
+  <.table id="bom" rows={@project.project_bom}>
+    <:col :let={bom_entry} label="Tool">{bom_entry.tool_name}</:col>
+
+    <:col :let={bom_entry} label="Version">{bom_entry.version}</:col>
+
+    <:col :let={bom_entry} label="Architecture">
+      <.badge variant="secondary">{Phoenix.Naming.humanize(bom_entry.architecture)}</.badge>
+    </:col>
+
+    <:col :let={bom_entry} label="Purpose">{bom_entry.purpose}</:col>
+
+    <:action :let={bom_entry}>
+      <.link patch={~p"/projects/#{@project}/bom/#{bom_entry}/edit"}>Edit</.link>
+    </:action>
+
+    <:action :let={bom_entry}>
+      <.link
+        phx-click="delete_bom"
+        phx-value-id={bom_entry.id}
+        data-confirm="Are you sure?"
+      >
+        Delete
+      </.link>
+    </:action>
+  </.table>
+</div>
+
+<.modal
+  :if={@live_action in [:edit]}
+  id="project-modal"
+  show
+  on_cancel={JS.patch(~p"/projects/#{@project}")}
+>
+  <.live_component
+    module={AuraWeb.ProjectsLive.FormComponent}
+    id={@project.id}
+    title={@page_title}
+    action={@live_action}
+    project={@project}
+    patch={~p"/projects/#{@project}"}
+  />
+</.modal>
+
+<.modal
+  :if={@live_action in [:new_subproject, :edit_subproject]}
+  id="subproject-modal"
+  show
+  on_cancel={JS.patch(~p"/projects/#{@project}/subprojects")}
+>
+  <.live_component
+    module={AuraWeb.ProjectsLive.SubprojectFormComponent}
+    id={@subproject.id || :new}
+    title={@page_title}
+    action={@live_action}
+    subproject={@subproject}
+    project={@project}
+    patch={~p"/projects/#{@project}/subprojects"}
+  />
+</.modal>
+
+<.modal
+  :if={@live_action in [:new_bom, :edit_bom]}
+  id="bom-modal"
+  show
+  on_cancel={JS.patch(~p"/projects/#{@project}/bom")}
+>
+  <.live_component
+    module={AuraWeb.ProjectsLive.BOMFormComponent}
+    id={@bom_entry.id || :new}
+    title={@page_title}
+    action={@live_action}
+    bom_entry={@bom_entry}
+    project={@project}
+    patch={~p"/projects/#{@project}/bom"}
+  />
+</.modal>

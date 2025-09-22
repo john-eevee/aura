@@ -110,17 +110,20 @@ defmodule Aura.Accounts do
       true
     else
       # Check if email is explicitly allowed
-      email_allowed? = Repo.exists?(
-        from e in AllowlistEntry,
-        where: e.type == "email" and e.value == ^email and e.enabled == true
-      )
+      email_allowed? =
+        Repo.exists?(
+          from e in AllowlistEntry,
+            where: e.type == "email" and e.value == ^email and e.enabled == true
+        )
 
       # Check if domain is allowed
       [_, domain] = String.split(email, "@", parts: 2)
-      domain_allowed? = Repo.exists?(
-        from e in AllowlistEntry,
-        where: e.type == "domain" and e.value == ^domain and e.enabled == true
-      )
+
+      domain_allowed? =
+        Repo.exists?(
+          from e in AllowlistEntry,
+            where: e.type == "domain" and e.value == ^domain and e.enabled == true
+        )
 
       email_allowed? || domain_allowed?
     end
@@ -661,16 +664,18 @@ defmodule Aura.Accounts do
     domain = email |> String.split("@") |> List.last()
 
     # Check if email is explicitly allowed
-    email_allowed = Repo.exists?(
-      from e in AllowlistEntry,
-      where: e.type == "email" and e.value == ^email and e.enabled == true
-    )
+    email_allowed =
+      Repo.exists?(
+        from e in AllowlistEntry,
+          where: e.type == "email" and e.value == ^email and e.enabled == true
+      )
 
     # Check if domain is allowed
-    domain_allowed = Repo.exists?(
-      from e in AllowlistEntry,
-      where: e.type == "domain" and e.value == ^domain and e.enabled == true
-    )
+    domain_allowed =
+      Repo.exists?(
+        from e in AllowlistEntry,
+          where: e.type == "domain" and e.value == ^domain and e.enabled == true
+      )
 
     email_allowed or domain_allowed
   end

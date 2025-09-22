@@ -10,11 +10,13 @@ defmodule Aura.AccountsFixtures do
   alias Aura.Accounts.Scope
 
   def unique_user_email(allowed \\ true) do
-    if (allowed) do
+    if allowed do
       ensure_allowlist_entries()
     end
-     "admin#{System.unique_integer([:positive])}@example.com"
+
+    "admin#{System.unique_integer([:positive])}@example.com"
   end
+
   def valid_user_password, do: "hello world!"
 
   def valid_user_attributes(attrs \\ %{}) do
@@ -34,6 +36,7 @@ defmodule Aura.AccountsFixtures do
       case Accounts.get_allowlist_entry_by_value_and_type(entry_attrs.value, entry_attrs.type) do
         nil ->
           {:ok, _} = Accounts.create_allowlist_entry(entry_attrs)
+
         _ ->
           :ok
       end
