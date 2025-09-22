@@ -18,6 +18,19 @@ defmodule Aura.Accounts.User do
   end
 
   @doc """
+  A user changeset for registration.
+
+  It requires the email and password to change otherwise an error is added.
+  """
+  def registration_changeset(user, attrs, opts \\ [validate_password: false]) do
+    user
+    |> cast(attrs, [:email, :password])
+    |> validate_email(opts)
+    |> validate_password(opts)
+    |> validate_allowlist()
+  end
+
+   @doc """
   A user changeset for registering or changing the email.
 
   It requires the email to change otherwise an error is added.
@@ -84,14 +97,26 @@ defmodule Aura.Accounts.User do
   end
 
   defp validate_password(changeset, opts) do
-    changeset
-    |> validate_required([:password])
-    |> validate_length(:password, min: 12, max: 72)
-    # Examples of additional password validation:
-    # |> validate_format(:password, ~r/[a-z]/, message: "at least one lower case character")
-    # |> validate_format(:password, ~r/[A-Z]/, message: "at least one upper case character")
-    # |> validate_format(:password, ~r/[!?@#$%^&*_0-9]/, message: "at least one digit or punctuation character")
+    validate_password? = Keyword.get(opts, :validate_password, true)
+
+    if validate_password? do
+      changeset
+      |> validate_required([:password])
+      |> validate_length(:password, min: 12, max: 72)
+    else
+      changeset
+    end
     |> maybe_hash_password(opts)
+  end
+
+  defp validate_allowlist(changeset) do
+    email = get_change(changeset, :email)
+
+    if email && !Aura.Accounts.email_allowed?(email) do
+      add_error(changeset, :email, "is not allowed to register")
+    else
+      changeset
+    end
   end
 
   defp maybe_hash_password(changeset, opts) do

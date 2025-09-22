@@ -4,9 +4,10 @@ defmodule Aura.Accounts do
   """
 
   import Ecto.Query, warn: false
+  import Ecto.Changeset
   alias Aura.Repo
 
-  alias Aura.Accounts.{User, UserToken, UserNotifier, Permission, UserPermission}
+  alias Aura.Accounts.{User, UserToken, UserNotifier, Permission, UserPermission, AllowlistEntry}
 
   ## Database getters
 
@@ -76,8 +77,158 @@ defmodule Aura.Accounts do
   """
   def register_user(attrs) do
     %User{}
-    |> User.email_changeset(attrs)
+    |> User.registration_changeset(attrs)
+    |> validate_allowlist()
     |> Repo.insert()
+  end
+
+  ## Allowlist
+
+  @doc """
+  Validates that the user's email is allowed to register based on the allowlist.
+  """
+  def validate_allowlist(changeset) do
+    email = get_field(changeset, :email)
+
+    if email && changeset.valid? do
+      if allowed_to_register?(email) do
+        changeset
+      else
+        add_error(changeset, :email, "is not allowed to register")
+      end
+    else
+      changeset
+    end
+  end
+
+  @doc """
+  Checks if an email is allowed to register based on the allowlist.
+  """
+  def allowed_to_register?(email) when is_binary(email) do
+    # If no allowlist entries exist, allow all registrations
+    if Repo.aggregate(AllowlistEntry, :count) == 0 do
+      true
+    else
+      # Check if email is explicitly allowed
+      email_allowed? = Repo.exists?(
+        from e in AllowlistEntry,
+        where: e.type == "email" and e.value == ^email and e.enabled == true
+      )
+
+      # Check if domain is allowed
+      [_, domain] = String.split(email, "@", parts: 2)
+      domain_allowed? = Repo.exists?(
+        from e in AllowlistEntry,
+        where: e.type == "domain" and e.value == ^domain and e.enabled == true
+      )
+
+      email_allowed? || domain_allowed?
+    end
+  end
+
+  @doc """
+  Lists all allowlist entries.
+
+  ## Examples
+
+      iex> list_allowlist_entries()
+      [%AllowlistEntry{}, ...]
+  """
+  def list_allowlist_entries do
+    Repo.all(AllowlistEntry)
+  end
+
+  @doc """
+  Gets a single allowlist entry.
+
+  Raises `Ecto.NoResultsError` if the AllowlistEntry does not exist.
+
+  ## Examples
+
+      iex> get_allowlist_entry!("123")
+      %AllowlistEntry{}
+
+      iex> get_allowlist_entry!("456")
+      ** (Ecto.NoResultsError)
+  """
+  def get_allowlist_entry!(id), do: Repo.get!(AllowlistEntry, id)
+
+  @doc """
+  Creates an allowlist entry.
+
+  ## Examples
+
+      iex> create_allowlist_entry(%{type: "domain", value: "example.com"})
+      {:ok, %AllowlistEntry{}}
+
+      iex> create_allowlist_entry(%{type: "invalid"})
+      {:error, %Ecto.Changeset{}}
+  """
+  def create_allowlist_entry(attrs \\ %{}) do
+    %AllowlistEntry{}
+    |> AllowlistEntry.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates an allowlist entry.
+
+  ## Examples
+
+      iex> update_allowlist_entry(entry, %{enabled: false})
+      {:ok, %AllowlistEntry{}}
+
+      iex> update_allowlist_entry(entry, %{type: "invalid"})
+      {:error, %Ecto.Changeset{}}
+  """
+  def update_allowlist_entry(%AllowlistEntry{} = entry, attrs) do
+    entry
+    |> AllowlistEntry.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Gets an allowlist entry by value and type.
+
+  Returns nil if the AllowlistEntry does not exist.
+
+  ## Examples
+
+      iex> get_allowlist_entry_by_value_and_type("example.com", "domain")
+      %AllowlistEntry{}
+
+      iex> get_allowlist_entry_by_value_and_type("nonexistent.com", "domain")
+      nil
+  """
+  def get_allowlist_entry_by_value_and_type(value, type) do
+    Repo.get_by(AllowlistEntry, value: value, type: type)
+  end
+
+  @doc """
+  Deletes an allowlist entry.
+
+  ## Examples
+
+      iex> delete_allowlist_entry(entry)
+      {:ok, %AllowlistEntry{}}
+
+      iex> delete_allowlist_entry(entry)
+      {:error, %Ecto.Changeset{}}
+  """
+  def delete_allowlist_entry(%AllowlistEntry{} = entry) do
+    Repo.delete(entry)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking allowlist entry changes.
+
+  ## Examples
+
+      iex> change_allowlist_entry(entry)
+      %Ecto.Changeset{data: %AllowlistEntry{}}
+  """
+  def change_allowlist_entry(%AllowlistEntry{} = entry, attrs \\ %{}) do
+    AllowlistEntry.changeset(entry, attrs)
   end
 
   ## Settings
@@ -490,6 +641,38 @@ defmodule Aura.Accounts do
   """
   def get_user_with_permissions(id) do
     Repo.get(User, id) |> Repo.preload(:permissions)
+  end
+
+  ## Allowlist
+
+  @doc """
+  Checks if an email is allowed to register based on the allowlist.
+
+  ## Examples
+
+      iex> email_allowed?("user@example.com")
+      true
+
+      iex> email_allowed?("user@blocked.com")
+      false
+  """
+  def email_allowed?(email) when is_binary(email) do
+    # Extract domain from email
+    domain = email |> String.split("@") |> List.last()
+
+    # Check if email is explicitly allowed
+    email_allowed = Repo.exists?(
+      from e in AllowlistEntry,
+      where: e.type == "email" and e.value == ^email and e.enabled == true
+    )
+
+    # Check if domain is allowed
+    domain_allowed = Repo.exists?(
+      from e in AllowlistEntry,
+      where: e.type == "domain" and e.value == ^domain and e.enabled == true
+    )
+
+    email_allowed or domain_allowed
   end
 
   ## Token helper

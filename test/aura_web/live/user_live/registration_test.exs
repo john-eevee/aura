@@ -53,7 +53,7 @@ defmodule AuraWeb.UserLive.RegistrationTest do
     test "renders errors for duplicated email", %{conn: conn} do
       {:ok, lv, _html} = live(conn, ~p"/users/register")
 
-      user = user_fixture(%{email: "test@email.com"})
+      user = user_fixture(%{email: "test@example.com"})
 
       result =
         lv

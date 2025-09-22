@@ -38,7 +38,11 @@ permissions = [
   # Admin permissions
   %{name: "manage_permissions", description: "Can manage user permissions"},
   %{name: "view_audit_logs", description: "Can view system audit logs"},
-  %{name: "system_admin", description: "Full system administration access"}
+  %{name: "system_admin", description: "Full system administration access"},
+
+  # Allowlist permissions
+  %{name: "manage_allowlist", description: "Can manage the user registration allowlist"},
+  %{name: "view_allowlist", description: "Can view the user registration allowlist"}
 ]
 
 Enum.each(permissions, fn permission_attrs ->
@@ -52,3 +56,62 @@ Enum.each(permissions, fn permission_attrs ->
       )
   end
 end)
+
+# Create default allowlist entries
+allowlist_entries = [
+  %{type: "domain", value: "example.com", description: "Example company domain", enabled: true},
+  %{type: "email", value: "admin@example.com", description: "Admin user", enabled: true}
+]
+
+Enum.each(allowlist_entries, fn entry_attrs ->
+  case Accounts.create_allowlist_entry(entry_attrs) do
+    {:ok, entry} ->
+      IO.puts("Created allowlist entry: #{entry.type} - #{entry.value}")
+    {:error, changeset} ->
+      IO.puts("Failed to create allowlist entry #{entry_attrs.type}:#{entry_attrs.value}: #{inspect(changeset.errors)}")
+  end
+end)
+
+# Create admin user
+admin_attrs = %{
+  email: "admin@example.com",
+  password: "admin123456789"
+}
+
+admin_user = case Accounts.get_user_by_email("admin@example.com") do
+  nil ->
+    # User doesn't exist, create it
+    case Accounts.register_user(admin_attrs) do
+      {:ok, user} ->
+        IO.puts("Created admin user: #{user.email}")
+        user
+      {:error, changeset} ->
+        IO.puts("Failed to create admin user: #{inspect(changeset.errors)}")
+        nil
+    end
+  user ->
+    IO.puts("Admin user already exists: #{user.email}")
+    user
+end
+
+confirmed_user = if admin_user && is_nil(admin_user.confirmed_at) do
+  changeset = Ecto.Changeset.change(admin_user, confirmed_at: DateTime.utc_now(:second))
+  {:ok, user} = Aura.Repo.update(changeset)
+  IO.puts("Confirmed admin user: #{user.email}")
+  user
+else
+  admin_user
+end
+
+# Assign all permissions to admin if user exists
+if confirmed_user do
+  all_permissions = Accounts.list_permissions()
+  Enum.each(all_permissions, fn permission ->
+    case Accounts.assign_permission_to_user(confirmed_user, permission) do
+      {:ok, _} ->
+        IO.puts("Assigned permission #{permission.name} to admin")
+      {:error, changeset} ->
+        IO.puts("Failed to assign permission #{permission.name}: #{inspect(changeset.errors)}")
+    end
+  end)
+end
