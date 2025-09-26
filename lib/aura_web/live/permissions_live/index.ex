@@ -117,9 +117,7 @@ defmodule AuraWeb.PermissionsLive.Index do
             module={AuraWeb.PermissionsLive.FormComponent}
             id={@permission.id || :new}
             title={@live_action_title}
-            action={@live_action}
             permission={@permission}
-            flash={@flash}
             return_to={~p"/permissions"}
           />
         </div>
@@ -134,7 +132,6 @@ defmodule AuraWeb.PermissionsLive.Index do
             id={@selected_user.id || :new}
             user={@selected_user}
             permissions={@permissions}
-            flash={@flash}
             return_to={~p"/permissions"}
           />
         </div>
