@@ -57,6 +57,8 @@ defmodule AuraWeb.Router do
       live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
       # Permissions Management
       live "/permissions", PermissionsLive.Index, :index
+      # User Management
+      live "/users", UserManagementLive.Index, :index
       # Clients
       live "/clients/new", ClientLive.Form, :new
       live "/clients", ClientLive.Index, :index
