@@ -81,10 +81,25 @@ defmodule AuraWeb.ClientLive.Show do
       Clients.subscribe_clients(socket.assigns.current_scope)
     end
 
-    {:ok,
-     socket
-     |> assign(:page_title, "Show Client")
-     |> assign(:client, Clients.get_client!(socket.assigns.current_scope, id))}
+    case Clients.get_client(socket.assigns.current_scope, id) do
+      {:ok, client} ->
+        {:ok,
+         socket
+         |> assign(:page_title, "Show Client")
+         |> assign(:client, client)}
+
+      {:error, :unauthorized} ->
+        {:ok,
+         socket
+         |> put_flash(:error, "You don't have permission to view this client.")
+         |> redirect(to: ~p"/clients")}
+
+      {:error, :not_found} ->
+        {:ok,
+         socket
+         |> put_flash(:error, "Client not found.")
+         |> redirect(to: ~p"/clients")}
+    end
   end
 
   @impl true

@@ -123,12 +123,23 @@ defmodule AuraWeb.ClientLive.Form do
   defp return_to(_), do: "index"
 
   defp apply_action(socket, :edit, %{"id" => id}) do
-    client = Clients.get_client!(socket.assigns.current_scope, id)
+    case Clients.get_client(socket.assigns.current_scope, id) do
+      {:ok, client} ->
+        socket
+        |> assign(:page_title, "Edit Client")
+        |> assign(:client, client)
+        |> assign(:form, to_form(Clients.change_client(socket.assigns.current_scope, client)))
 
-    socket
-    |> assign(:page_title, "Edit Client")
-    |> assign(:client, client)
-    |> assign(:form, to_form(Clients.change_client(socket.assigns.current_scope, client)))
+      {:error, :unauthorized} ->
+        socket
+        |> put_flash(:error, "You don't have permission to edit this client.")
+        |> redirect(to: ~p"/clients")
+
+      {:error, :not_found} ->
+        socket
+        |> put_flash(:error, "Client not found.")
+        |> redirect(to: ~p"/clients")
+    end
   end
 
   defp apply_action(socket, :new, _params) do

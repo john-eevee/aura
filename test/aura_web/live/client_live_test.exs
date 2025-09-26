@@ -151,4 +151,56 @@ defmodule AuraWeb.ClientLiveTest do
       assert html =~ "Some updated name"
     end
   end
+
+  describe "Unauthorized access - no permissions" do
+    setup :register_and_log_in_user
+
+    test "redirects when accessing clients index without permissions", %{conn: conn} do
+      assert {:error, {:redirect, %{to: redirected_to}}} = live(conn, ~p"/clients")
+      assert redirected_to == ~p"/"
+    end
+
+    test "redirects when accessing client show without permissions", %{conn: conn} do
+      # Create a client with permissions first
+      admin_conn =
+        register_and_log_in_user_with_permissions(%{conn: Phoenix.ConnTest.build_conn()}, [
+          "list_clients",
+          "create_client",
+          "update_client",
+          "delete_client"
+        ])
+
+      admin_scope = admin_conn.scope
+      client = client_fixture(admin_scope)
+
+      # Now try to access with unauthorized user (the user from setup has no permissions)
+      assert {:error, {:redirect, %{to: redirected_to}}} = live(conn, ~p"/clients/#{client}")
+      assert redirected_to == ~p"/clients"
+    end
+  end
+
+  describe "Unauthorized access - not authenticated" do
+    test "redirects when accessing clients index without authentication", %{conn: conn} do
+      assert {:error, {:redirect, %{to: redirected_to}}} = live(conn, ~p"/clients")
+      assert redirected_to == ~p"/users/log-in"
+    end
+
+    test "redirects when accessing client show without authentication", %{conn: conn} do
+      # Create a client with permissions first
+      admin_conn =
+        register_and_log_in_user_with_permissions(%{conn: Phoenix.ConnTest.build_conn()}, [
+          "list_clients",
+          "create_client",
+          "update_client",
+          "delete_client"
+        ])
+
+      admin_scope = admin_conn.scope
+      client = client_fixture(admin_scope)
+
+      # Try to access without authentication (using the original conn without user)
+      assert {:error, {:redirect, %{to: redirected_to}}} = live(conn, ~p"/clients/#{client}")
+      assert redirected_to == ~p"/users/log-in"
+    end
+  end
 end

@@ -96,24 +96,46 @@ defmodule AuraWeb.ClientLive.Index do
       Clients.subscribe_clients(socket.assigns.current_scope)
     end
 
-    {:ok,
-     socket
-     |> assign(:page_title, "Listing Clients")
-     |> stream(:clients, list_clients(socket.assigns.current_scope))}
+    case list_clients(socket.assigns.current_scope) do
+      clients when is_list(clients) ->
+        {:ok,
+         socket
+         |> assign(:page_title, "Listing Clients")
+         |> stream(:clients, clients)}
+
+      {:error, :unauthorized} ->
+        {:ok,
+         socket
+         |> put_flash(:error, "You don't have permission to view clients.")
+         |> redirect(to: ~p"/")}
+    end
   end
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
-    client = Clients.get_client!(socket.assigns.current_scope, id)
-    {:ok, _} = Clients.delete_client(socket.assigns.current_scope, client)
+    case Clients.get_client(socket.assigns.current_scope, id) do
+      {:ok, client} ->
+        {:ok, _} = Clients.delete_client(socket.assigns.current_scope, client)
+        {:noreply, stream_delete(socket, :clients, client)}
 
-    {:noreply, stream_delete(socket, :clients, client)}
+      {:error, :unauthorized} ->
+        {:noreply, put_flash(socket, :error, "You don't have permission to delete this client.")}
+
+      {:error, :not_found} ->
+        {:noreply, put_flash(socket, :error, "Client not found.")}
+    end
   end
 
   @impl true
   def handle_info({type, %Aura.Clients.Client{}}, socket)
       when type in [:created, :updated, :deleted] do
-    {:noreply, stream(socket, :clients, list_clients(socket.assigns.current_scope), reset: true)}
+    case list_clients(socket.assigns.current_scope) do
+      clients when is_list(clients) ->
+        {:noreply, stream(socket, :clients, clients, reset: true)}
+
+      {:error, :unauthorized} ->
+        {:noreply, put_flash(socket, :error, "You no longer have permission to view clients.")}
+    end
   end
 
   defp list_clients(current_scope) do

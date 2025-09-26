@@ -20,12 +20,12 @@ defmodule Aura.ClientsTest do
       assert Clients.list_clients(other_scope) == [other_client]
     end
 
-    test "get_client!/2 returns the client with given id" do
+    test "get_client/2 returns the client with given id" do
       scope = user_scope_fixture()
       client = client_fixture(scope)
       other_scope = user_scope_fixture()
-      assert Clients.get_client!(scope, client.id) == client
-      assert_raise Ecto.NoResultsError, fn -> Clients.get_client!(other_scope, client.id) end
+      assert Clients.get_client(scope, client.id) == {:ok, client}
+      assert Clients.get_client(other_scope, client.id) == {:error, :not_found}
     end
 
     test "create_client/2 with valid data creates a client" do
@@ -83,14 +83,14 @@ defmodule Aura.ClientsTest do
       scope = user_scope_fixture()
       client = client_fixture(scope)
       assert {:error, %Ecto.Changeset{}} = Clients.update_client(scope, client, @invalid_attrs)
-      assert client == Clients.get_client!(scope, client.id)
+      assert {:ok, ^client} = Clients.get_client(scope, client.id)
     end
 
     test "delete_client/2 deletes the client" do
       scope = user_scope_fixture()
       client = client_fixture(scope)
       assert {:ok, %Client{}} = Clients.delete_client(scope, client)
-      assert_raise Ecto.NoResultsError, fn -> Clients.get_client!(scope, client.id) end
+      assert Clients.get_client(scope, client.id) == {:error, :not_found}
     end
 
     test "delete_client/2 with invalid scope raises" do

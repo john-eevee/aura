@@ -50,19 +50,22 @@ defmodule Aura.Clients do
   @doc """
   Gets a single client.
 
-  Raises `Ecto.NoResultsError` if the Client does not exist.
-
   ## Examples
 
-      iex> get_client!(scope, 123)
-      %Client{}
+      iex> get_client(scope, 123)
+      {:ok, %Client{}}
 
-      iex> get_client!(scope, 456)
-      ** (Ecto.NoResultsError)
+      iex> get_client(scope, 456)
+      {:error, :not_found}
 
   """
-  def get_client!(%Scope{} = scope, id) do
-    Repo.get_by!(Client, id: id, user_id: scope.user.id)
+  def get_client(%Scope{} = scope, id) do
+    with :ok <- Aura.Accounts.authorize(scope, "list_clients") do
+      case Repo.get_by(Client, id: id, user_id: scope.user.id) do
+        nil -> {:error, :not_found}
+        client -> {:ok, client}
+      end
+    end
   end
 
   @doc """
