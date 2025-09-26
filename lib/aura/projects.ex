@@ -7,6 +7,7 @@ defmodule Aura.Projects do
   alias Aura.Repo
 
   alias Aura.Projects.{Project, Subproject, ProjectBOM}
+  alias Aura.Accounts.Scope
 
   ## Database getters
 
@@ -51,13 +52,15 @@ defmodule Aura.Projects do
 
   ## Examples
 
-      iex> list_projects()
+      iex> list_projects(scope)
       [%Project{}, ...]
 
   """
-  def list_projects do
-    # TODO: Add client preloading when scope is available
-    Repo.all(from(p in Project))
+  def list_projects(%Scope{} = scope) do
+    with :ok <- Aura.Accounts.authorize(scope, "view_projects") do
+      # TODO: Add client preloading when scope is available
+      Repo.all(from(p in Project))
+    end
   end
 
   @doc """
@@ -98,17 +101,19 @@ defmodule Aura.Projects do
 
   ## Examples
 
-      iex> create_project(%{field: value})
+      iex> create_project(scope, %{field: value})
       {:ok, %Project{}}
 
-      iex> create_project(%{field: bad_value})
+      iex> create_project(scope, %{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_project(attrs \\ %{}) do
-    %Project{}
-    |> Project.changeset(attrs)
-    |> Repo.insert()
+  def create_project(%Scope{} = scope, attrs \\ %{}) do
+    with :ok <- Aura.Accounts.authorize(scope, "create_projects") do
+      %Project{}
+      |> Project.changeset(attrs)
+      |> Repo.insert()
+    end
   end
 
   @doc """
@@ -116,17 +121,19 @@ defmodule Aura.Projects do
 
   ## Examples
 
-      iex> update_project(project, %{field: new_value})
+      iex> update_project(scope, project, %{field: new_value})
       {:ok, %Project{}}
 
-      iex> update_project(project, %{field: bad_value})
+      iex> update_project(scope, project, %{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_project(%Project{} = project, attrs) do
-    project
-    |> Project.changeset(attrs)
-    |> Repo.update()
+  def update_project(%Scope{} = scope, %Project{} = project, attrs) do
+    with :ok <- Aura.Accounts.authorize(scope, "update_projects") do
+      project
+      |> Project.changeset(attrs)
+      |> Repo.update()
+    end
   end
 
   @doc """
@@ -134,15 +141,17 @@ defmodule Aura.Projects do
 
   ## Examples
 
-      iex> delete_project(project)
+      iex> delete_project(scope, project)
       {:ok, %Project{}}
 
-      iex> delete_project(project)
+      iex> delete_project(scope, project)
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_project(%Project{} = project) do
-    Repo.delete(project)
+  def delete_project(%Scope{} = scope, %Project{} = project) do
+    with :ok <- Aura.Accounts.authorize(scope, "delete_projects") do
+      Repo.delete(project)
+    end
   end
 
   @doc """

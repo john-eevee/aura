@@ -71,7 +71,42 @@ defmodule Aura.AccountsFixtures do
 
   def user_scope_fixture do
     user = user_fixture()
-    user_scope_fixture(user)
+    # Ensure permissions exist and assign them to the user
+    permissions = ensure_permissions_exist()
+
+    Enum.each(permissions, fn permission ->
+      Accounts.assign_permission_to_user(user, permission)
+    end)
+
+    scope = user_scope_fixture(user)
+    scope
+  end
+
+  defp ensure_permissions_exist do
+    # Create basic permissions if they don't exist
+    permission_names = [
+      "list_clients",
+      "create_client",
+      "update_client",
+      "delete_client",
+      "view_projects",
+      "create_projects",
+      "update_projects",
+      "delete_projects"
+    ]
+
+    Enum.map(permission_names, fn name ->
+      case Accounts.get_permission_by_name(name) do
+        nil ->
+          {:ok, permission} =
+            Accounts.create_permission(%{name: name, description: "Test permission"})
+
+          permission
+
+        permission ->
+          permission
+      end
+    end)
   end
 
   def user_scope_fixture(user) do

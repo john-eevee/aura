@@ -36,6 +36,7 @@ defmodule AuraWeb.ConnCase do
     {:ok, conn: Phoenix.ConnTest.build_conn()}
   end
 
+
   @doc """
   Setup helper that registers and logs in users.
 
@@ -54,6 +55,56 @@ defmodule AuraWeb.ConnCase do
       |> Enum.into([])
 
     %{conn: log_in_user(conn, user, opts), user: user, scope: scope}
+  end
+
+  @doc """
+  Setup helper that registers and logs in users with client permissions.
+
+      setup context do
+        permissions = ["list_clients", "create_client", "update_client", "delete_client"]
+        register_and_log_in_user_with_permissions(context, permissions)
+      end
+
+  It stores an updated connection and a registered user with client permissions in the
+  test context.
+  """
+  def register_and_log_in_user_with_permissions(%{conn: conn}, permissions) do
+    user = Aura.AccountsFixtures.user_fixture()
+    # Ensure permissions exist and assign them to the user
+    loaded_permissions =
+      permissions
+      |> Enum.map(&Aura.Accounts.get_permission_by_name/1)
+      |> Enum.reject(&is_nil/1)
+
+    loaded_permissions =
+      if loaded_permissions == [] do
+        # Create permissions if they don't exist
+        permission_names = permissions
+
+        Enum.each(permission_names, fn name ->
+          case Aura.Accounts.get_permission_by_name(name) do
+            nil ->
+              {:ok, _} =
+                Aura.Accounts.create_permission(%{name: name, description: "Test permission"})
+
+            _ ->
+              :ok
+          end
+        end)
+
+        # Re-fetch permissions after creation
+        Enum.map(permission_names, &Aura.Accounts.get_permission_by_name/1)
+      else
+        permissions
+      end
+
+    Enum.each(loaded_permissions, fn permission ->
+      Aura.Accounts.assign_permission_to_user(user, permission)
+    end)
+
+    scope = Aura.Accounts.Scope.for_user(user)
+
+    %{conn: log_in_user(conn, user), user: user, scope: scope}
   end
 
   @doc """

@@ -7,7 +7,15 @@ defmodule Aura.Accounts do
   import Ecto.Changeset
   alias Aura.Repo
 
-  alias Aura.Accounts.{User, UserToken, UserNotifier, Permission, UserPermission, AllowlistEntry}
+  alias Aura.Accounts.{
+    User,
+    UserToken,
+    UserNotifier,
+    Permission,
+    UserPermission,
+    AllowlistEntry,
+    Scope
+  }
 
   ## Database getters
 
@@ -633,9 +641,12 @@ defmodule Aura.Accounts do
       [%Permission{}, ...]
   """
   def list_user_permissions(%User{} = user) do
-    user
-    |> Repo.preload(:permissions)
-    |> Map.get(:permissions)
+    Repo.all(
+      from p in Permission,
+        join: up in UserPermission,
+        on: up.permission_id == p.id,
+        where: up.user_id == ^user.id
+    )
   end
 
   @doc """
@@ -650,10 +661,12 @@ defmodule Aura.Accounts do
       false
   """
   def user_has_permission?(%User{} = user, permission_name) when is_binary(permission_name) do
-    user
-    |> Repo.preload(:permissions)
-    |> Map.get(:permissions)
-    |> Enum.any?(&(&1.name == permission_name))
+    Repo.exists?(
+      from p in Permission,
+        join: up in UserPermission,
+        on: up.permission_id == p.id,
+        where: up.user_id == ^user.id and p.name == ^permission_name
+    )
   end
 
   @doc """
@@ -675,6 +688,48 @@ defmodule Aura.Accounts do
     MapSet.intersection(permission_names_set, user_permission_names)
     |> MapSet.size() > 0
   end
+
+  @doc """
+  Checks if the current scope has the required permission.
+
+  ## Examples
+
+      iex> authorize(scope, "create_user")
+      :ok
+
+      iex> authorize(scope, "admin_only")
+      {:error, :unauthorized}
+  """
+  def authorize(%Scope{} = scope, permission_name) when is_binary(permission_name) do
+    if user_has_permission?(scope.user, permission_name) do
+      :ok
+    else
+      {:error, :unauthorized}
+    end
+  end
+
+  def authorize(nil, _permission_name), do: {:error, :unauthenticated}
+
+  @doc """
+  Checks if the current scope has any of the required permissions.
+
+  ## Examples
+
+      iex> authorize_any(scope, ["create_user", "update_user"])
+      :ok
+
+      iex> authorize_any(scope, ["admin_only"])
+      {:error, :unauthorized}
+  """
+  def authorize_any(%Scope{} = scope, permission_names) when is_list(permission_names) do
+    if user_has_any_permission?(scope.user, permission_names) do
+      :ok
+    else
+      {:error, :unauthorized}
+    end
+  end
+
+  def authorize_any(nil, _permission_names), do: {:error, :unauthenticated}
 
   @doc """
   Gets a user with preloaded permissions.

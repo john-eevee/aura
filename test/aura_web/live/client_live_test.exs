@@ -18,8 +18,6 @@ defmodule AuraWeb.ClientLiveTest do
   }
   @invalid_attrs %{name: nil, status: nil, since: nil, industry_type: nil}
 
-  setup :register_and_log_in_user
-
   defp create_client(%{scope: scope}) do
     client = client_fixture(scope)
 
@@ -27,6 +25,11 @@ defmodule AuraWeb.ClientLiveTest do
   end
 
   describe "Index" do
+    setup context do
+      permissions = ["list_clients", "create_client", "update_client", "delete_client"]
+      register_and_log_in_user_with_permissions(context, permissions)
+    end
+
     setup [:create_client]
 
     test "lists all clients", %{conn: conn, client: client} do
@@ -108,6 +111,11 @@ defmodule AuraWeb.ClientLiveTest do
   end
 
   describe "Show" do
+    setup context do
+      permissions = ["list_clients", "create_client", "update_client", "delete_client"]
+      register_and_log_in_user_with_permissions(context, permissions)
+    end
+
     setup [:create_client]
 
     test "displays client", %{conn: conn, client: client} do

@@ -42,7 +42,9 @@ defmodule Aura.Clients do
 
   """
   def list_clients(%Scope{} = scope) do
-    Repo.all_by(Client, user_id: scope.user.id)
+    with :ok <- Aura.Accounts.authorize(scope, "list_clients") do
+      Repo.all_by(Client, user_id: scope.user.id)
+    end
   end
 
   @doc """
@@ -76,7 +78,8 @@ defmodule Aura.Clients do
 
   """
   def create_client(%Scope{} = scope, attrs) do
-    with {:ok, client = %Client{}} <-
+    with :ok <- Aura.Accounts.authorize(scope, "create_client"),
+         {:ok, client = %Client{}} <-
            %Client{}
            |> Client.changeset(attrs, scope)
            |> Repo.insert() do
@@ -100,7 +103,8 @@ defmodule Aura.Clients do
   def update_client(%Scope{} = scope, %Client{} = client, attrs) do
     true = client.user_id == scope.user.id
 
-    with {:ok, client = %Client{}} <-
+    with :ok <- Aura.Accounts.authorize(scope, "update_client"),
+         {:ok, client = %Client{}} <-
            client
            |> Client.changeset(attrs, scope)
            |> Repo.update() do
@@ -124,7 +128,8 @@ defmodule Aura.Clients do
   def delete_client(%Scope{} = scope, %Client{} = client) do
     true = client.user_id == scope.user.id
 
-    with {:ok, client = %Client{}} <-
+    with :ok <- Aura.Accounts.authorize(scope, "delete_client"),
+         {:ok, client = %Client{}} <-
            Repo.delete(client) do
       broadcast_client(scope, {:deleted, client})
       {:ok, client}
