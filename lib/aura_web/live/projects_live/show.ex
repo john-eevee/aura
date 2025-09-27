@@ -5,43 +5,70 @@ defmodule AuraWeb.ProjectsLive.Show do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, socket}
+    {:ok,
+     socket
+     |> assign(:current_user, socket.assigns.current_scope.user)
+     |> assign(:current_scope, socket.assigns.current_scope)}
   end
 
   @impl true
   def handle_params(%{"id" => id} = params, _, socket) do
-    active_tab =
-      case params do
-        %{"tab" => "subprojects"} -> :subprojects
-        %{"tab" => "bom"} -> :bom
-        _ -> :overview
-      end
+    with :ok <- Aura.Accounts.authorize(socket.assigns.current_scope, "view_projects") do
+      active_tab =
+        case params do
+          %{"tab" => "subprojects"} -> :subprojects
+          %{"tab" => "bom"} -> :bom
+          _ -> :overview
+        end
 
-    {:noreply,
-     socket
-     |> assign(:page_title, page_title(socket.assigns.live_action))
-     |> assign(:project, Projects.get_project!(id))
-     |> assign(:active_tab, active_tab)}
+      {:noreply,
+       socket
+       |> assign(:page_title, page_title(socket.assigns.live_action))
+       |> assign(:project, Projects.get_project!(id))
+       |> assign(:active_tab, active_tab)}
+    else
+      {:error, :unauthorized} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "You don't have permission to view this project.")
+         |> redirect(to: ~p"/projects")}
+    end
   end
 
   @impl true
   def handle_params(%{"id" => id, "subproject_id" => subproject_id}, _, socket) do
-    {:noreply,
-     socket
-     |> assign(:page_title, page_title(socket.assigns.live_action))
-     |> assign(:project, Projects.get_project!(id))
-     |> assign(:subproject, Projects.get_subproject!(subproject_id))
-     |> assign(:active_tab, :subprojects)}
+    with :ok <- Aura.Accounts.authorize(socket.assigns.current_scope, "view_projects") do
+      {:noreply,
+       socket
+       |> assign(:page_title, page_title(socket.assigns.live_action))
+       |> assign(:project, Projects.get_project!(id))
+       |> assign(:subproject, Projects.get_subproject!(subproject_id))
+       |> assign(:active_tab, :subprojects)}
+    else
+      {:error, :unauthorized} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "You don't have permission to view this project.")
+         |> redirect(to: ~p"/projects")}
+    end
   end
 
   @impl true
   def handle_params(%{"id" => id, "bom_id" => bom_id}, _, socket) do
-    {:noreply,
-     socket
-     |> assign(:page_title, page_title(socket.assigns.live_action))
-     |> assign(:project, Projects.get_project!(id))
-     |> assign(:bom_entry, Projects.get_project_bom!(bom_id))
-     |> assign(:active_tab, :bom)}
+    with :ok <- Aura.Accounts.authorize(socket.assigns.current_scope, "view_projects") do
+      {:noreply,
+       socket
+       |> assign(:page_title, page_title(socket.assigns.live_action))
+       |> assign(:project, Projects.get_project!(id))
+       |> assign(:bom_entry, Projects.get_project_bom!(bom_id))
+       |> assign(:active_tab, :bom)}
+    else
+      {:error, :unauthorized} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "You don't have permission to view this project.")
+         |> redirect(to: ~p"/projects")}
+    end
   end
 
   @impl true

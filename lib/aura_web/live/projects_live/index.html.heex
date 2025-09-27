@@ -40,7 +40,6 @@
   :if={@live_action in [:new, :edit]}
   id="project-modal"
   show
-  on_cancel={JS.patch(~p"/projects")}
 >
   <.live_component
     module={AuraWeb.ProjectsLive.FormComponent}
@@ -49,6 +48,9 @@
     action={@live_action}
     project={@project}
     patch={~p"/projects"}
+    current_user={@current_user}
+    current_scope={@current_scope}
+    clients={@clients}
   />
 </.modal>
 defp status_variant(:in_quote), do: "warning"

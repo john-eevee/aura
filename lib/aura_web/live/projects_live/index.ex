@@ -6,10 +6,22 @@ defmodule AuraWeb.ProjectsLive.Index do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok,
-     socket
-     |> assign(:page_title, "Projects")
-     |> stream(:projects, Projects.list_projects(socket.assigns.current_scope))}
+    case Projects.list_projects(socket.assigns.current_scope) do
+      projects when is_list(projects) ->
+        {:ok,
+         socket
+         |> assign(:current_user, socket.assigns.current_scope.user)
+         |> assign(:current_scope, socket.assigns.current_scope)
+         |> assign(:clients, Aura.Clients.list_clients(socket.assigns.current_scope))
+         |> assign(:page_title, "Projects")
+         |> stream(:projects, projects)}
+
+      {:error, :unauthorized} ->
+        {:ok,
+         socket
+         |> put_flash(:error, "You don't have permission to view projects.")
+         |> redirect(to: ~p"/")}
+    end
   end
 
   @impl true
@@ -21,12 +33,14 @@ defmodule AuraWeb.ProjectsLive.Index do
     socket
     |> assign(:page_title, "Edit Project")
     |> assign(:project, Projects.get_project!(id))
+    |> assign(:patch, "/projects/" <> id <> "/show")
   end
 
   defp apply_action(socket, :new, _params) do
     socket
     |> assign(:page_title, "New Project")
     |> assign(:project, %Project{})
+    |> assign(:patch, "/projects")
   end
 
   defp apply_action(socket, :index, _params) do

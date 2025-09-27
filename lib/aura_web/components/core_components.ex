@@ -464,7 +464,7 @@ defmodule AuraWeb.CoreComponents do
   """
   attr :id, :string, required: true
   attr :show, :boolean, default: false
-  attr :on_cancel, JS, default: %JS{}
+  attr :on_cancel, :string, default: nil
   slot :inner_block, required: true
 
   def modal(assigns) do
@@ -472,8 +472,7 @@ defmodule AuraWeb.CoreComponents do
     <div
       id={@id}
       phx-mounted={@show && show_modal(@id)}
-      phx-remove={hide_modal(@id)}
-      data-cancel={JS.exec(@on_cancel, "phx-remove")}
+      data-cancel={@on_cancel}
       class="relative z-50 hidden"
     >
       <div id={"#{@id}-bg"} class="bg-black/50 fixed inset-0 transition-opacity" aria-hidden="true" />

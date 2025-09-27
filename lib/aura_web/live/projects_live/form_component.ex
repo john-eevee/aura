@@ -1,6 +1,8 @@
 defmodule AuraWeb.ProjectsLive.FormComponent do
   use AuraWeb, :live_component
 
+  import Ecto.Changeset
+
   alias Aura.Projects
 
   @impl true
@@ -21,17 +23,12 @@ defmodule AuraWeb.ProjectsLive.FormComponent do
       >
         <.input field={@form[:name]} type="text" label="Name" />
         <.input field={@form[:description]} type="textarea" label="Description" />
-        <!-- TODO: Add client selection when scope is available -->
-        <!-- <.input
-          field={@form[:client_id]}
-          type="select"
-          label="Client"
-          options={Enum.map(@clients, &{&1.name, &1.id})}
-        /> -->
+        <.input field={@form[:client_id]} type="hidden" />
         <.input
           field={@form[:status]}
           type="select"
           label="Status"
+          prompt="Select status"
           options={[
             {"In Quote", :in_quote},
             {"In Development", :in_development},
@@ -40,8 +37,12 @@ defmodule AuraWeb.ProjectsLive.FormComponent do
             {"Abandoned", :abandoned}
           ]}
         />
+        <.input field={@form[:goal]} type="textarea" label="Goal" />
+        <.input field={@form[:start_date]} type="date" label="Start Date" />
+        <.input field={@form[:end_date]} type="date" label="End Date" />
 
-        <div class="flex justify-end">
+        <div class="flex justify-end gap-4">
+          <.button variant="primary" phx-click={JS.patch(~p"/projects")}>Cancel</.button>
           <.button phx-disable-with="Saving...">Save Project</.button>
         </div>
       </.form>
@@ -50,15 +51,20 @@ defmodule AuraWeb.ProjectsLive.FormComponent do
   end
 
   @impl true
-  def update(%{project: project} = assigns, socket) do
+  def update(%{project: project, action: action} = assigns, socket) do
+    clients = assigns[:clients] || []
     changeset = Projects.change_project(project)
 
-    {:ok,
-     socket
-     |> assign(assigns)
-     # TODO: Add client selection when scope is available
-     |> assign(:clients, [])
-     |> assign_form(changeset)}
+    changeset =
+      if action == :new and clients != [] do
+        put_change(changeset, :client_id, List.first(clients).id)
+      else
+        changeset
+      end
+
+    socket = assign(socket, assigns)
+
+    {:ok, assign_form(socket, changeset)}
   end
 
   @impl true

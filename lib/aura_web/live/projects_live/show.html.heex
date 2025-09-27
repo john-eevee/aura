@@ -3,7 +3,7 @@
   <:subtitle>{@project.description}</:subtitle>
 
   <:actions>
-    <.link patch={~p"/projects/#{@project}/edit"}><.button>Edit project</.button></.link>
+    <.link patch={~p"/projects/#{@project}/edit"}>Edit project</.link>
   </:actions>
 </.header>
 
@@ -120,22 +120,6 @@
 </div>
 
 <.modal
-  :if={@live_action in [:edit]}
-  id="project-modal"
-  show
-  on_cancel={JS.patch(~p"/projects/#{@project}")}
->
-  <.live_component
-    module={AuraWeb.ProjectsLive.FormComponent}
-    id={@project.id}
-    title={@page_title}
-    action={@live_action}
-    project={@project}
-    patch={~p"/projects/#{@project}"}
-  />
-</.modal>
-
-<.modal
   :if={@live_action in [:new_subproject, :edit_subproject]}
   id="subproject-modal"
   show
@@ -153,10 +137,9 @@
 </.modal>
 
 <.modal
-  :if={@live_action in [:new_bom, :edit_bom]}
+  :if={@live_action == :new_bom}
   id="bom-modal"
   show
-  on_cancel={JS.patch(~p"/projects/#{@project}/bom")}
 >
   <.live_component
     module={AuraWeb.ProjectsLive.BOMFormComponent}
