@@ -639,6 +639,188 @@ defmodule AuraWeb.CoreComponents do
     """
   end
 
+  @doc """
+  Renders a responsive floating app menu toggle.
+
+  On desktop (md and up) this shows a small floating popover. On mobile
+  (below md) it opens a full-screen menu.
+
+  Accepts an optional `:current_scope` assign so user links can be shown.
+  """
+  attr :current_scope, :map, default: nil
+
+  def app_menu(assigns) do
+    ~H"""
+    <div class="relative inline-block">
+      <!-- Desktop toggle (shown on md+ only) -->
+      <button
+        type="button"
+        class="hidden md:flex btn btn-ghost rounded-full p-2"
+        aria-expanded="false"
+        phx-click={JS.toggle(to: "#app-menu-popover")}
+      >
+        <.icon name="hero-squares-2x2" class="size-5" />
+      </button>
+
+    <!-- Desktop popover -->
+      <div
+        id="app-menu-popover"
+        class="hidden md:block absolute right-0 top-full mt-2 w-72 card bg-base-100 shadow-lg rounded-md z-50 origin-top-right py-2"
+        phx-click-away={JS.hide(to: "#app-menu-popover")}
+        phx-window-keydown={JS.hide(to: "#app-menu-popover")}
+      >
+        <div class="px-3 pb-2">
+          <div class="text-sm font-semibold text-base-content/90 px-1 pb-2">Apps</div>
+          <ul class="space-y-1">
+            <li>
+              <.link
+                href="/clients"
+                class="flex items-start gap-3 p-2 rounded hover:bg-base-200 transition-colors"
+              >
+                <.icon name="hero-briefcase" class="size-5 text-base-content/70" />
+                <div>
+                  <div class="font-medium">Clients</div>
+                  <div class="text-sm text-base-content/60">Manage your clients and contacts</div>
+                </div>
+              </.link>
+            </li>
+
+            <li>
+              <.link
+                href="/projects"
+                class="flex items-start gap-3 p-2 rounded hover:bg-base-200 transition-colors"
+              >
+                <.icon name="hero-folder" class="size-5 text-base-content/70" />
+                <div>
+                  <div class="font-medium">Projects</div>
+                  <div class="text-sm text-base-content/60">View and organize projects</div>
+                </div>
+              </.link>
+            </li>
+
+            <li :if={@current_scope}>
+              <.link
+                href="/users/settings"
+                class="flex items-start gap-3 p-2 rounded hover:bg-base-200 transition-colors"
+              >
+                <.icon name="hero-user-circle" class="size-5 text-base-content/70" />
+                <div>
+                  <div class="font-medium">{@current_scope.user.email}</div>
+                  <div class="text-sm text-base-content/60">Account settings</div>
+                </div>
+              </.link>
+            </li>
+
+            <li :if={@current_scope}>
+              <.link
+                href="/users/log-out"
+                method="delete"
+                class="flex items-center gap-3 p-2 rounded hover:bg-base-200 transition-colors text-error"
+              >
+                <.icon name="hero-arrow-left-on-rectangle" class="size-5 text-error/80" />
+                <div class="font-medium">Log out</div>
+              </.link>
+            </li>
+
+            <li :if={!@current_scope}>
+              <.link
+                href="/users/log-in"
+                class="flex items-center gap-3 p-2 rounded hover:bg-base-200 transition-colors"
+              >
+                <.icon name="hero-arrow-right-on-rectangle" class="size-5 text-base-content/70" />
+                <div class="font-medium">Log in</div>
+              </.link>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+    <!-- Mobile toggle (shown below md only) -->
+      <button
+        type="button"
+        class="md:hidden btn btn-ghost rounded-full p-2"
+        phx-click={JS.show(to: "#app-menu-mobile")}
+      >
+        <.icon name="hero-squares-2x2" class="size-5" />
+      </button>
+
+    <!-- Mobile full-screen menu -->
+      <div
+        id="app-menu-mobile"
+        class="hidden fixed inset-0 z-50 bg-base-100 p-6 md:hidden overflow-auto"
+      >
+        <div class="flex items-center justify-between mb-6">
+          <div class="flex items-center gap-3">
+            <img src="/images/logo-32.png" width="40" />
+            <div>
+              <div class="font-semibold">v{Application.spec(:aura, :vsn)}</div>
+              <div class="text-sm text-base-content/60">Quick access</div>
+            </div>
+          </div>
+          <button phx-click={JS.hide(to: "#app-menu-mobile")} aria-label="Close" class="btn btn-ghost">
+            <.icon name="hero-x-mark" />
+          </button>
+        </div>
+
+        <nav class="grid grid-cols-1 gap-4">
+          <.link
+            href="/clients"
+            class="flex items-center gap-3 p-4 rounded-lg hover:bg-base-200 transition"
+          >
+            <.icon name="hero-briefcase" class="size-6" />
+            <div>
+              <div class="font-medium">Clients</div>
+              <div class="text-sm text-base-content/60">Manage your clients</div>
+            </div>
+          </.link>
+
+          <.link
+            href="/projects"
+            class="flex items-center gap-3 p-4 rounded-lg hover:bg-base-200 transition"
+          >
+            <.icon name="hero-folder" class="size-6" />
+            <div>
+              <div class="font-medium">Projects</div>
+              <div class="text-sm text-base-content/60">View and organize projects</div>
+            </div>
+          </.link>
+
+          <.link
+            :if={@current_scope}
+            href={~p"/users/settings"}
+            class="flex items-center gap-3 p-4 rounded-lg hover:bg-base-200 transition"
+          >
+            <.icon name="hero-user-circle" class="size-6" />
+            <div>
+              <div class="font-medium">{@current_scope.user.email}</div>
+              <div class="text-sm text-base-content/60">Account settings</div>
+            </div>
+          </.link>
+
+          <.link
+            :if={@current_scope}
+            href={~p"/users/log-out"}
+            method="delete"
+            class="flex items-center gap-3 p-4 rounded-lg hover:bg-base-200 transition text-error"
+          >
+            <.icon name="hero-arrow-left-on-rectangle" class="size-6 text-error/80" />
+            <div class="font-medium">Log out</div>
+          </.link>
+
+          <.link
+            :if={!@current_scope}
+            href="/users/log-in"
+            class="flex items-center gap-3 p-4 rounded-lg hover:bg-base-200 transition"
+          >
+            <.icon name="hero-arrow-right-on-rectangle" class="size-6" />
+            <div class="font-medium">Log in</div>
+          </.link>
+        </nav>
+      </div>
+    </div>
+    """
+  end
+
   defp tab_classes(true), do: "border-indigo-500 text-indigo-600"
 
   defp tab_classes(false),

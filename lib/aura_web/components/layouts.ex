@@ -43,16 +43,13 @@ defmodule AuraWeb.Layouts do
         </a>
       </div>
       <div class="flex-none">
-        <ul class="menu menu-horizontal w-full relative z-10 flex items-center gap-4 px-4 sm:px-6 lg:px-8 justify-end">
+        <ul class="menu menu-horizontal w-full relative z-10 flex items-center gap-4 px-4 sm:px-6 lg:px-8 justify-end overflow-visible">
           <%= if @current_scope do %>
             <li>
+              <.app_menu current_scope={@current_scope} />
+            </li>
+            <li>
               <.theme_toggle />
-            </li>
-            <li>
-              <.link href={~p"/users/settings"}>{@current_scope.user.email}</.link>
-            </li>
-            <li>
-              <.link href={~p"/users/log-out"} method="delete">Log out</.link>
             </li>
           <% else %>
             <li>
