@@ -8,17 +8,18 @@ defmodule Aura.Projects.Project do
   @status_values [:in_quote, :in_development, :maintenance, :done, :abandoned]
 
   schema "projects" do
-    field :name, :string
-    field :status, Ecto.Enum, values: @status_values, default: :in_quote
-    field :description, :string
-    field :goal, :string
-    field :start_date, :date
-    field :end_date, :date
+    field(:name, :string)
+    field(:status, Ecto.Enum, values: @status_values, default: :in_quote)
+    field(:description, :string)
+    field(:goal, :string)
+    field(:start_date, :date)
+    field(:end_date, :date)
 
-    belongs_to :client, Aura.Clients.Client
+    belongs_to(:client, Aura.Clients.Client)
 
-    has_many :subprojects, Aura.Projects.Subproject
-    has_many :project_bom, Aura.Projects.ProjectBOM
+    has_many(:subprojects, Aura.Projects.Subproject)
+    has_many(:project_bom, Aura.Projects.ProjectBOM)
+    has_many(:documents, Aura.Documents.Document)
 
     timestamps(type: :utc_datetime)
   end
