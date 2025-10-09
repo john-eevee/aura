@@ -32,6 +32,7 @@ defmodule AuraWeb.ProjectsLive.Show do
        |> assign(:project, project)
        |> assign(:documents, documents)
        |> assign(:active_tab, active_tab)}
+
       socket =
         socket
         |> assign(:page_title, page_title(socket.assigns.live_action))
@@ -173,7 +174,9 @@ defmodule AuraWeb.ProjectsLive.Show do
       Documents.list_project_documents(socket.assigns.current_scope, socket.assigns.project.id)
 
     {:noreply, assign(socket, documents: documents)}
+  end
 
+  @impl true
   def handle_info({AuraWeb.ProjectsLive.SubprojectFormComponent, {:saved, _subproject}}, socket) do
     {:noreply, assign(socket, :project, Projects.get_project!(socket.assigns.project.id))}
   end
