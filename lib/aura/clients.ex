@@ -11,6 +11,19 @@ defmodule Aura.Clients do
   alias Aura.Accounts.Scope
 
   @doc """
+  Returns the PubSub topic for client changes for the given scope.
+
+  ## Examples
+
+      iex> clients_topic(scope)
+      "user:123e4567-e89b-12d3-a456-426614174000:clients"
+
+  """
+  def clients_topic(%Scope{} = scope) do
+    "user:#{scope.user.id}:clients"
+  end
+
+  @doc """
   Subscribes to scoped notifications about any client changes.
 
   The broadcasted messages match the pattern:
@@ -21,15 +34,11 @@ defmodule Aura.Clients do
 
   """
   def subscribe_clients(%Scope{} = scope) do
-    key = scope.user.id
-
-    Phoenix.PubSub.subscribe(Aura.PubSub, "user:#{key}:clients")
+    Phoenix.PubSub.subscribe(Aura.PubSub, clients_topic(scope))
   end
 
   defp broadcast_client(%Scope{} = scope, message) do
-    key = scope.user.id
-
-    Phoenix.PubSub.broadcast(Aura.PubSub, "user:#{key}:clients", message)
+    Phoenix.PubSub.broadcast(Aura.PubSub, clients_topic(scope), message)
   end
 
   @doc """
@@ -155,6 +164,19 @@ defmodule Aura.Clients do
   end
 
   @doc """
+  Returns the PubSub topic for contact changes for the given scope.
+
+  ## Examples
+
+      iex> contacts_topic(scope)
+      "user:123e4567-e89b-12d3-a456-426614174000:contacts"
+
+  """
+  def contacts_topic(%Scope{} = scope) do
+    "user:#{scope.user.id}:contacts"
+  end
+
+  @doc """
   Subscribes to scoped notifications about any contact changes.
 
   The broadcasted messages match the pattern:
@@ -165,15 +187,11 @@ defmodule Aura.Clients do
 
   """
   def subscribe_contacts(%Scope{} = scope) do
-    key = scope.user.id
-
-    Phoenix.PubSub.subscribe(Aura.PubSub, "user:#{key}:contacts")
+    Phoenix.PubSub.subscribe(Aura.PubSub, contacts_topic(scope))
   end
 
   defp broadcast_contact(%Scope{} = scope, message) do
-    key = scope.user.id
-
-    Phoenix.PubSub.broadcast(Aura.PubSub, "user:#{key}:contacts", message)
+    Phoenix.PubSub.broadcast(Aura.PubSub, contacts_topic(scope), message)
   end
 
   @doc """
