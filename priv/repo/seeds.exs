@@ -42,7 +42,14 @@ permissions = [
 
   # Allowlist permissions
   %{name: "manage_allowlist", description: "Can manage the user registration allowlist"},
-  %{name: "view_allowlist", description: "Can view the user registration allowlist"}
+  %{name: "view_allowlist", description: "Can view the user registration allowlist"},
+
+  # Document permissions
+  %{name: "upload_document", description: "Can upload documents to projects"},
+  %{name: "view_document", description: "Can view project documents"},
+  %{name: "update_document", description: "Can update document information"},
+  %{name: "delete_document", description: "Can delete documents"},
+  %{name: "manage_document_viewers", description: "Can manage who can view private documents"}
 ]
 
 Enum.each(permissions, fn permission_attrs ->

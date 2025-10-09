@@ -30,6 +30,15 @@
     <.tab id="bom" active={@active_tab == :bom} phx-click="change_tab" phx-value-tab="bom">
       Bill of Materials
     </.tab>
+
+    <.tab
+      id="documents"
+      active={@active_tab == :documents}
+      phx-click="change_tab"
+      phx-value-tab="documents"
+    >
+      Documents
+    </.tab>
   </.tabs>
 </div>
 
@@ -119,6 +128,60 @@
   </.table>
 </div>
 
+<div :if={@active_tab == :documents}>
+  <.header>
+    Documents
+    <:actions>
+      <.link patch={~p"/projects/#{@project}/documents/upload"}>
+        <.button>Upload Document</.button>
+      </.link>
+    </:actions>
+  </.header>
+
+  <.table id="documents" rows={@documents}>
+    <:col :let={document} label="Name">
+      <div class="flex items-center">
+        <.icon name="hero-document" class="h-5 w-5 text-zinc-500 mr-2" />
+        {document.name}
+      </div>
+    </:col>
+
+    <:col :let={document} label="Size">
+      {Float.round(document.size / 1024 / 1024, 2)} MB
+    </:col>
+
+    <:col :let={document} label="Visibility">
+      <.badge variant={if document.visibility == :public, do: "success", else: "secondary"}>
+        {Phoenix.Naming.humanize(document.visibility)}
+      </.badge>
+    </:col>
+
+    <:col :let={document} label="Uploaded by">
+      {document.uploader.email}
+    </:col>
+
+    <:col :let={document} label="Uploaded">
+      {document.inserted_at |> Calendar.strftime("%b %d, %Y")}
+    </:col>
+
+    <:action :let={document}>
+      <.link href={~p"/projects/#{@project}/documents/#{document}/view"} target="_blank">
+        View
+      </.link>
+    </:action>
+
+    <:action :let={document}>
+      <.link
+        phx-click="delete_document"
+        phx-value-id={document.id}
+        data-confirm="Are you sure you want to delete this document?"
+      >
+        Delete
+      </.link>
+    </:action>
+  </.table>
+</div>
+
 <.modal
   :if={@live_action in [:new_subproject, :edit_subproject]}
   id="subproject-modal"
@@ -149,5 +212,22 @@
     bom_entry={@bom_entry}
     project={@project}
     patch={~p"/projects/#{@project}/bom"}
+  />
+</.modal>
+
+<.modal
+  :if={@live_action == :upload_document}
+  id="document-upload-modal"
+  show
+  on_cancel={JS.patch(~p"/projects/#{@project}/documents")}
+>
+  <.live_component
+    module={AuraWeb.DocumentsLive.UploadComponent}
+    id={:new}
+    title={@page_title}
+    action={@live_action}
+    project={@project}
+    current_scope={@current_scope}
+    patch={~p"/projects/#{@project}/documents"}
   />
 </.modal>

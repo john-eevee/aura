@@ -80,7 +80,11 @@ defmodule AuraWeb.Router do
       live "/projects/:id/subprojects/:subproject_id/edit", ProjectsLive.Show, :edit_subproject
       live "/projects/:id/bom/new", ProjectsLive.Show, :new_bom
       live "/projects/:id/bom/:bom_id/edit", ProjectsLive.Show, :edit_bom
+      live "/projects/:id/documents", ProjectsLive.Show, :show
+      live "/projects/:id/documents/upload", ProjectsLive.Show, :upload_document
     end
+
+    get "/projects/:project_id/documents/:id/view", AuraWeb.DocumentController, :view
 
     post "/users/update-password", UserSessionController, :update_password
   end

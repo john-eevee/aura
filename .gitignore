@@ -38,3 +38,6 @@ npm-debug.log
 # Todo file
 TODO.md
 
+# Uploaded documents storage
+/priv/storage/
+

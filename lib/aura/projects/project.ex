@@ -19,6 +19,7 @@ defmodule Aura.Projects.Project do
 
     has_many :subprojects, Aura.Projects.Subproject
     has_many :project_bom, Aura.Projects.ProjectBOM
+    has_many :documents, Aura.Documents.Document
 
     timestamps(type: :utc_datetime)
   end

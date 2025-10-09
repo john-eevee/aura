@@ -2,6 +2,7 @@ defmodule AuraWeb.ProjectsLive.Show do
   use AuraWeb, :live_view
 
   alias Aura.Projects
+  alias Aura.Documents
 
   @impl true
   def mount(_params, _session, socket) do
@@ -18,13 +19,18 @@ defmodule AuraWeb.ProjectsLive.Show do
         case params do
           %{"tab" => "subprojects"} -> :subprojects
           %{"tab" => "bom"} -> :bom
+          %{"tab" => "documents"} -> :documents
           _ -> :overview
         end
+
+      project = Projects.get_project!(id)
+      documents = Documents.list_project_documents(socket.assigns.current_scope, id)
 
       {:noreply,
        socket
        |> assign(:page_title, page_title(socket.assigns.live_action))
-       |> assign(:project, Projects.get_project!(id))
+       |> assign(:project, project)
+       |> assign(:documents, documents)
        |> assign(:active_tab, active_tab)}
     else
       {:error, :unauthorized} ->
@@ -85,6 +91,9 @@ defmodule AuraWeb.ProjectsLive.Show do
         :bom ->
           push_patch(socket, to: ~p"/projects/#{socket.assigns.project}/bom")
 
+        :documents ->
+          push_patch(socket, to: ~p"/projects/#{socket.assigns.project}/documents")
+
         _ ->
           socket
       end
@@ -114,12 +123,40 @@ defmodule AuraWeb.ProjectsLive.Show do
      |> put_flash(:info, "BOM entry deleted successfully")}
   end
 
+  @impl true
+  def handle_event("delete_document", %{"id" => id}, socket) do
+    document = Documents.get_document!(id)
+
+    case Documents.soft_delete_document(socket.assigns.current_scope, document) do
+      {:ok, _} ->
+        documents = Documents.list_project_documents(socket.assigns.current_scope, socket.assigns.project.id)
+
+        {:noreply,
+         socket
+         |> assign(:documents, documents)
+         |> put_flash(:info, "Document deleted successfully")}
+
+      {:error, :unauthorized} ->
+        {:noreply, put_flash(socket, :error, "You don't have permission to delete this document")}
+
+      {:error, _} ->
+        {:noreply, put_flash(socket, :error, "Failed to delete document")}
+    end
+  end
+
+  @impl true
+  def handle_info({AuraWeb.DocumentsLive.UploadComponent, {:saved, _document}}, socket) do
+    documents = Documents.list_project_documents(socket.assigns.current_scope, socket.assigns.project.id)
+    {:noreply, assign(socket, documents: documents)}
+  end
+
   defp page_title(:show), do: "Show Project"
   defp page_title(:edit), do: "Edit Project"
   defp page_title(:new_subproject), do: "New Subproject"
   defp page_title(:edit_subproject), do: "Edit Subproject"
   defp page_title(:new_bom), do: "New BOM Entry"
   defp page_title(:edit_bom), do: "Edit BOM Entry"
+  defp page_title(:upload_document), do: "Upload Document"
 
   defp status_badge_variant(:in_quote), do: "warning"
   defp status_badge_variant(:in_development), do: "info"

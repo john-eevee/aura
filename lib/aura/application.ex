@@ -14,6 +14,7 @@ defmodule Aura.Application do
       {Phoenix.PubSub, name: Aura.PubSub},
       # Start a worker by calling: Aura.Worker.start_link(arg)
       # {Aura.Worker, arg},
+      Aura.Documents.Cleaner,
       # Start to serve requests, typically the last entry
       AuraWeb.Endpoint
     ]

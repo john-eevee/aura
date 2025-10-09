@@ -22,7 +22,10 @@ config :aura, :scopes,
 
 config :aura,
   ecto_repos: [Aura.Repo],
-  generators: [timestamp_type: :utc_datetime, binary_id: true]
+  generators: [timestamp_type: :utc_datetime, binary_id: true],
+  storage_adapter: Aura.Storage.Local,
+  storage_path: "priv/storage",
+  document_cleanup_days: 30
 
 # Configures the endpoint
 config :aura, AuraWeb.Endpoint,
