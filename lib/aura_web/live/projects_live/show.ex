@@ -21,11 +21,25 @@ defmodule AuraWeb.ProjectsLive.Show do
           _ -> :overview
         end
 
-      {:noreply,
-       socket
-       |> assign(:page_title, page_title(socket.assigns.live_action))
-       |> assign(:project, Projects.get_project!(id))
-       |> assign(:active_tab, active_tab)}
+      socket =
+        socket
+        |> assign(:page_title, page_title(socket.assigns.live_action))
+        |> assign(:project, Projects.get_project!(id))
+        |> assign(:active_tab, active_tab)
+
+      socket =
+        case socket.assigns.live_action do
+          :new_subproject ->
+            assign(socket, :subproject, %Aura.Projects.Subproject{})
+
+          :new_bom ->
+            assign(socket, :bom_entry, %Aura.Projects.ProjectBOM{})
+
+          _ ->
+            socket
+        end
+
+      {:noreply, socket}
     else
       {:error, :unauthorized} ->
         {:noreply,
@@ -112,6 +126,16 @@ defmodule AuraWeb.ProjectsLive.Show do
      socket
      |> assign(:project, Projects.get_project!(socket.assigns.project.id))
      |> put_flash(:info, "BOM entry deleted successfully")}
+  end
+
+  @impl true
+  def handle_info({AuraWeb.ProjectsLive.SubprojectFormComponent, {:saved, _subproject}}, socket) do
+    {:noreply, assign(socket, :project, Projects.get_project!(socket.assigns.project.id))}
+  end
+
+  @impl true
+  def handle_info({AuraWeb.ProjectsLive.BOMFormComponent, {:saved, _bom_entry}}, socket) do
+    {:noreply, assign(socket, :project, Projects.get_project!(socket.assigns.project.id))}
   end
 
   defp page_title(:show), do: "Show Project"
