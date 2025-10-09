@@ -1,5 +1,17 @@
 # Aura
 
+A Bill of Materials (BOM) management system for tracking project dependencies.
+
+## Features
+
+- **Project Management**: Track projects, clients, and subprojects
+- **Bill of Materials**: Manage dependency inventories for your projects
+- **Dependency Import**: Upload dependency manifest files (mix.lock, package.json) to automatically populate BOM entries
+- **Webhook Integration**: Integrate with build tools to automatically push dependency updates ([see documentation](docs/BOM_WEBHOOK_API.md))
+- **Permission System**: Role-based access control for teams
+
+## Getting Started
+
 To start your Phoenix server:
 
 * Run `mix setup` to install and setup dependencies
