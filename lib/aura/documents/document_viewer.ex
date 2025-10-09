@@ -6,8 +6,8 @@ defmodule Aura.Documents.DocumentViewer do
   @foreign_key_type :binary_id
 
   schema "document_viewers" do
-    belongs_to :document, Aura.Documents.Document
-    belongs_to :user, Aura.Accounts.User
+    belongs_to(:document, Aura.Documents.Document)
+    belongs_to(:user, Aura.Accounts.User)
 
     timestamps(type: :utc_datetime)
   end

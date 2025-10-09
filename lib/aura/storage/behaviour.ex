@@ -1,13 +1,13 @@
 defmodule Aura.Storage.Behaviour do
   @moduledoc """
   Behaviour for pluggable storage adapters.
-  
+
   This allows the system to support different storage backends like S3, Local filesystem, etc.
   """
 
   @doc """
   Stores a file and returns the storage path/key.
-  
+
   ## Parameters
     - `file_path` - The local path to the file to store
     - `destination` - The destination path/key in the storage
@@ -22,7 +22,7 @@ defmodule Aura.Storage.Behaviour do
 
   @doc """
   Retrieves a file from storage.
-  
+
   ## Parameters
     - `path` - The storage path/key
     - `opts` - Additional options for the storage adapter
@@ -36,7 +36,7 @@ defmodule Aura.Storage.Behaviour do
 
   @doc """
   Deletes a file from storage.
-  
+
   ## Parameters
     - `path` - The storage path/key
     - `opts` - Additional options for the storage adapter
@@ -49,7 +49,7 @@ defmodule Aura.Storage.Behaviour do
 
   @doc """
   Streams a file from storage for viewing in browser.
-  
+
   ## Parameters
     - `path` - The storage path/key
     - `opts` - Additional options for the storage adapter

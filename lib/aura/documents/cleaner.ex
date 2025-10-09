@@ -1,7 +1,7 @@
 defmodule Aura.Documents.Cleaner do
   @moduledoc """
   GenServer that periodically cleans up soft-deleted documents.
-  
+
   Documents are permanently deleted after a configured period (default: 30 days).
   """
 

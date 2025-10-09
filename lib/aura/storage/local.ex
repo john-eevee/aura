@@ -1,7 +1,7 @@
 defmodule Aura.Storage.Local do
   @moduledoc """
   Local filesystem storage adapter.
-  
+
   Stores files in a local directory on the filesystem.
   """
 

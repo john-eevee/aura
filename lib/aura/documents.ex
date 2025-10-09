@@ -17,15 +17,16 @@ defmodule Aura.Documents do
     include_deleted = Keyword.get(opts, :include_deleted, false)
 
     query =
-      from d in Document,
+      from(d in Document,
         where: d.project_id == ^project_id,
         preload: [:uploader, :viewers]
+      )
 
     query =
       if include_deleted do
         query
       else
-        from d in query, where: is_nil(d.soft_deleted_at)
+        from(d in query, where: is_nil(d.soft_deleted_at))
       end
 
     query
@@ -175,8 +176,7 @@ defmodule Aura.Documents do
     with :ok <- Aura.Accounts.authorize(scope, "manage_document_viewers"),
          document <- get_document!(document_id),
          :ok <- authorize_document_action(scope, document, "manage_document_viewers") do
-      viewer =
-        Repo.get_by(DocumentViewer, document_id: document_id, user_id: user_id)
+      viewer = Repo.get_by(DocumentViewer, document_id: document_id, user_id: user_id)
 
       if viewer do
         Repo.delete(viewer)
@@ -202,21 +202,22 @@ defmodule Aura.Documents do
     cutoff_date = DateTime.utc_now() |> DateTime.add(-days_after_deletion, :day)
 
     Repo.all(
-      from d in Document,
+      from(d in Document,
         where: not is_nil(d.soft_deleted_at),
         where: d.soft_deleted_at < ^cutoff_date
+      )
     )
   end
 
   # Private functions
 
   defp filter_by_visibility(query, %Scope{user: user}) do
-    from d in query,
+    from(d in query,
       left_join: v in DocumentViewer,
       on: v.document_id == d.id,
-      where:
-        d.visibility == :public or d.uploader_id == ^user.id or v.user_id == ^user.id,
+      where: d.visibility == :public or d.uploader_id == ^user.id or v.user_id == ^user.id,
       distinct: true
+    )
   end
 
   defp can_view_document?(%Scope{user: user}, %Document{} = document) do
@@ -229,8 +230,9 @@ defmodule Aura.Documents do
 
       true ->
         Repo.exists?(
-          from v in DocumentViewer,
+          from(v in DocumentViewer,
             where: v.document_id == ^document.id and v.user_id == ^user.id
+          )
         )
     end
   end

@@ -8,11 +8,11 @@ defmodule Aura.Documents.DocumentAuditLog do
   @action_values [:view, :upload, :update, :delete, :restore, :add_viewer, :remove_viewer]
 
   schema "document_audit_logs" do
-    field :action, Ecto.Enum, values: @action_values
-    field :metadata, :map, default: %{}
+    field(:action, Ecto.Enum, values: @action_values)
+    field(:metadata, :map, default: %{})
 
-    belongs_to :document, Aura.Documents.Document
-    belongs_to :user, Aura.Accounts.User
+    belongs_to(:document, Aura.Documents.Document)
+    belongs_to(:user, Aura.Accounts.User)
 
     timestamps(type: :utc_datetime, updated_at: false)
   end

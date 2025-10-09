@@ -148,7 +148,11 @@ defmodule AuraWeb.ProjectsLive.Show do
 
     case Documents.soft_delete_document(socket.assigns.current_scope, document) do
       {:ok, _} ->
-        documents = Documents.list_project_documents(socket.assigns.current_scope, socket.assigns.project.id)
+        documents =
+          Documents.list_project_documents(
+            socket.assigns.current_scope,
+            socket.assigns.project.id
+          )
 
         {:noreply,
          socket
@@ -165,7 +169,9 @@ defmodule AuraWeb.ProjectsLive.Show do
 
   @impl true
   def handle_info({AuraWeb.DocumentsLive.UploadComponent, {:saved, _document}}, socket) do
-    documents = Documents.list_project_documents(socket.assigns.current_scope, socket.assigns.project.id)
+    documents =
+      Documents.list_project_documents(socket.assigns.current_scope, socket.assigns.project.id)
+
     {:noreply, assign(socket, documents: documents)}
 
   def handle_info({AuraWeb.ProjectsLive.SubprojectFormComponent, {:saved, _subproject}}, socket) do
