@@ -30,7 +30,11 @@ defmodule AuraWeb.Api.BOMWebhookController do
   Expects a JSON payload with manifest filename and content.
   """
   def import(conn, %{"project_id" => project_id, "manifest" => manifest_params}) do
-    with {:ok, filename} <- Map.fetch(manifest_params, "filename"),
+    current_scope = conn.assigns[:current_scope]
+
+    with :ok <- Aura.Accounts.authorize(current_scope, "update_projects"),
+         {:ok, _project} <- validate_project_exists(project_id),
+         {:ok, filename} <- Map.fetch(manifest_params, "filename"),
          {:ok, content} <- Map.fetch(manifest_params, "content"),
          {:ok, result} <- Projects.import_bom_from_manifest(project_id, content, filename) do
       conn
@@ -39,9 +43,21 @@ defmodule AuraWeb.Api.BOMWebhookController do
         success: true,
         created: result.created,
         failed: result.failed,
-        message: "Successfully imported #{result.created} dependencies"
+        skipped: result.skipped,
+        message: "Successfully imported #{result.created} dependencies",
+        errors: format_errors(result.errors)
       })
     else
+      {:error, :unauthorized} ->
+        conn
+        |> put_status(:forbidden)
+        |> json(%{success: false, error: "You don't have permission to update this project"})
+
+      {:error, :project_not_found} ->
+        conn
+        |> put_status(:not_found)
+        |> json(%{success: false, error: "Project not found"})
+
       :error ->
         conn
         |> put_status(:bad_request)
@@ -52,6 +68,27 @@ defmodule AuraWeb.Api.BOMWebhookController do
         |> put_status(:unprocessable_entity)
         |> json(%{success: false, error: inspect(reason)})
     end
+  end
+
+  defp validate_project_exists(project_id) do
+    case Projects.get_project(project_id) do
+      nil -> {:error, :project_not_found}
+      project -> {:ok, project}
+    end
+  end
+
+  defp format_errors([]), do: []
+
+  defp format_errors(errors) do
+    Enum.map(errors, fn {:error, changeset_or_reason} ->
+      case changeset_or_reason do
+        %Ecto.Changeset{} = changeset ->
+          Ecto.Changeset.traverse_errors(changeset, fn {msg, _opts} -> msg end)
+
+        reason ->
+          inspect(reason)
+      end
+    end)
   end
 
   def import(conn, _params) do

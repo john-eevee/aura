@@ -64,7 +64,9 @@ defmodule Aura.Projects.DependencyParserTest do
                dep.name == "lodash" and dep.version == "4.17.21"
              end)
 
-      assert Enum.any?(dependencies, fn dep -> dep.name == "jest" and dep.version == "29.0.0" end)
+      assert Enum.any?(dependencies, fn dep ->
+               dep.name == "jest" and dep.version == ">=29.0.0"
+             end)
     end
 
     test "handles package.json without dependencies" do

@@ -362,29 +362,45 @@ defmodule Aura.Projects do
   @doc """
   Creates multiple BOM entries from a list of dependencies.
 
+  Checks for duplicates and only creates entries that don't already exist
+  for the given project with the same tool_name and version.
+
   ## Examples
 
       iex> create_bom_entries_from_dependencies(project_id, [%{name: "phoenix", version: "1.7.0"}])
-      {:ok, %{created: 1, failed: 0, errors: []}}
+      {:ok, %{created: 1, failed: 0, errors: [], skipped: 0}}
 
   """
   def create_bom_entries_from_dependencies(project_id, dependencies) do
+    existing_boms = list_project_bom(project_id)
+
     results =
       Enum.map(dependencies, fn dep ->
-        attrs = %{
-          project_id: project_id,
-          tool_name: dep.name,
-          version: dep.version
-        }
+        # Check if this dependency already exists
+        duplicate? =
+          Enum.any?(existing_boms, fn bom ->
+            bom.tool_name == dep.name and bom.version == dep.version
+          end)
 
-        create_project_bom(attrs)
+        if duplicate? do
+          {:skipped, dep}
+        else
+          attrs = %{
+            project_id: project_id,
+            tool_name: dep.name,
+            version: dep.version
+          }
+
+          create_project_bom(attrs)
+        end
       end)
 
     created = Enum.count(results, fn {status, _} -> status == :ok end)
     failed = Enum.count(results, fn {status, _} -> status == :error end)
+    skipped = Enum.count(results, fn {status, _} -> status == :skipped end)
     errors = Enum.filter(results, fn {status, _} -> status == :error end)
 
-    {:ok, %{created: created, failed: failed, errors: errors}}
+    {:ok, %{created: created, failed: failed, skipped: skipped, errors: errors}}
   end
 
   @doc """

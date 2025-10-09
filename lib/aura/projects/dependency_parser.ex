@@ -95,8 +95,8 @@ defmodule Aura.Projects.DependencyParser do
   defp add_dependencies(acc, deps) when is_map(deps) do
     new_deps =
       Enum.map(deps, fn {name, version} ->
-        # Remove version prefixes like ^, ~, >=, etc.
-        clean_version = String.replace(version, ~r/^[\^~>=<]+/, "")
+        # Remove version prefixes like ^, ~
+        clean_version = String.replace(version, ~r/^[\^~]/, "")
         %{name: name, version: clean_version}
       end)
 

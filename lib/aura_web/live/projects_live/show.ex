@@ -135,10 +135,17 @@ defmodule AuraWeb.ProjectsLive.Show do
 
   @impl true
   def handle_info({AuraWeb.ProjectsLive.BOMFormComponent, {:imported, result}}, socket) do
+    message =
+      if result.skipped > 0 do
+        "Imported #{result.created} dependencies (#{result.skipped} duplicates skipped)"
+      else
+        "Imported #{result.created} dependencies successfully"
+      end
+
     {:noreply,
      socket
      |> assign(:project, Projects.get_project!(socket.assigns.project.id))
-     |> put_flash(:info, "Imported #{result.created} dependencies successfully")}
+     |> put_flash(:info, message)}
   end
 
   defp page_title(:show), do: "Show Project"

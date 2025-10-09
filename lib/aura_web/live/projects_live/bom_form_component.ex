@@ -88,7 +88,8 @@ defmodule AuraWeb.ProjectsLive.BOMFormComponent do
             {"x86", :x86},
             {"ARM32", :arm32}
           ]}
-        /> <.input field={@form[:purpose]} type="textarea" label="Purpose" /> />
+        />
+        <.input field={@form[:purpose]} type="textarea" label="Purpose" />
         <div class="flex justify-end">
           <.button phx-disable-with="Saving...">Save BOM Entry</.button>
         </div>
@@ -145,11 +146,20 @@ defmodule AuraWeb.ProjectsLive.BOMFormComponent do
           {:ok, result} ->
             notify_parent({:imported, result})
 
+            message =
+              if result.skipped > 0 do
+                "Successfully imported #{result.created} dependencies (#{result.skipped} duplicates skipped)"
+              else
+                "Successfully imported #{result.created} dependencies"
+              end
+
             {:noreply,
              socket
              |> assign(:import_result, result)
              |> assign(:import_error, nil)
-             |> put_flash(:info, "Successfully imported #{result.created} dependencies")}
+             # Cancel any pending uploads to clear the file input
+             |> cancel_upload(:manifest)
+             |> put_flash(:info, message)}
 
           {:error, reason} ->
             {:noreply,
@@ -164,6 +174,13 @@ defmodule AuraWeb.ProjectsLive.BOMFormComponent do
          |> assign(:import_error, "Please select a file first")
          |> assign(:import_result, nil)}
     end
+  end
+
+  defp cancel_upload(socket, upload_name) do
+    # Phoenix LiveView doesn't have a built-in cancel_upload, but we can
+    # allow_upload again to reset the state
+    socket
+    |> allow_upload(upload_name, accept: ~w(.lock .json), max_entries: 1)
   end
 
   defp save_bom_entry(socket, :edit_bom, bom_params) do
