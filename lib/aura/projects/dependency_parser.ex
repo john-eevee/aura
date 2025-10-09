@@ -54,15 +54,17 @@ defmodule Aura.Projects.DependencyParser do
     end
   end
 
-  defp extract_mix_version({:hex, _package, version, _hash, _managers, _deps, _hex_metadata, _optional}) do
+  defp extract_mix_version({:hex, _package, version, _hash, _managers, _deps, _hex_metadata, _optional})
+       when is_binary(version) do
     version
   end
 
-  defp extract_mix_version({:hex, _package, version, _hash, _managers, _deps, _hex_metadata}) do
+  defp extract_mix_version({:hex, _package, version, _hash, _managers, _deps, _hex_metadata})
+       when is_binary(version) do
     version
   end
 
-  defp extract_mix_version({:hex, _package, version, _hash}) do
+  defp extract_mix_version({:hex, _package, version, _hash}) when is_binary(version) do
     version
   end
 

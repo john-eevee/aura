@@ -17,16 +17,25 @@ defmodule AuraWeb.Router do
     plug :accepts, ["json"]
   end
 
+  pipeline :api_auth do
+    plug :accepts, ["json"]
+    plug :fetch_session
+    plug :fetch_current_scope_for_user
+    plug :require_authenticated_user
+  end
+
   scope "/", AuraWeb do
     pipe_through :browser
 
     get "/", PageController, :home
   end
 
-  # Other scopes may use custom stacks.
-  # scope "/api", AuraWeb do
-  #   pipe_through :api
-  # end
+  # API routes for webhook integration
+  scope "/api", AuraWeb.Api do
+    pipe_through :api_auth
+
+    post "/webhooks/bom/:project_id", BOMWebhookController, :import
+  end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
   if Application.compile_env(:aura, :dev_routes) do
