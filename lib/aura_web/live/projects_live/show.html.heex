@@ -54,31 +54,50 @@
     Subprojects
     <:actions>
       <.link patch={~p"/projects/#{@project}/subprojects/new"}>
-        <.button>New Subproject</.button>
+        <.button>Add Subproject</.button>
       </.link>
     </:actions>
   </.header>
 
-  <.table id="subprojects" rows={@project.subprojects}>
+  <div :if={@project.subprojects == []}>
+    <div class="text-center py-12">
+      <.icon name="hero-cube" class="mx-auto h-12 w-12 text-gray-400" />
+      <h3 class="mt-2 text-sm font-semibold text-gray-900">No subprojects</h3>
+      <p class="mt-1 text-sm text-gray-500">Get started by creating a new subproject.</p>
+      <div class="mt-6">
+        <.link patch={~p"/projects/#{@project}/subprojects/new"}>
+          <.button>Add Subproject</.button>
+        </.link>
+      </div>
+    </div>
+  </div>
+
+  <.table :if={@project.subprojects != []} id="subprojects" rows={@project.subprojects}>
     <:col :let={subproject} label="Name">{subproject.name}</:col>
 
     <:col :let={subproject} label="Platform">
       <.badge variant="info">{Phoenix.Naming.humanize(subproject.platform)}</.badge>
     </:col>
 
-    <:col :let={subproject} label="Description">{subproject.description}</:col>
-
     <:action :let={subproject}>
-      <.link patch={~p"/projects/#{@project}/subprojects/#{subproject}/edit"}>Edit</.link>
+      <.link
+        patch={~p"/projects/#{@project}/subprojects/#{subproject}/edit"}
+        class="text-gray-600 hover:text-gray-900"
+        title="Edit"
+      >
+        <.icon name="hero-pencil-square" class="h-5 w-5" />
+      </.link>
     </:action>
 
     <:action :let={subproject}>
       <.link
         phx-click="delete_subproject"
         phx-value-id={subproject.id}
-        data-confirm="Are you sure?"
+        data-confirm={"Are you sure you want to delete '#{subproject.name}'?"}
+        class="text-red-600 hover:text-red-900"
+        title="Delete"
       >
-        Delete
+        <.icon name="hero-trash" class="h-5 w-5" />
       </.link>
     </:action>
   </.table>

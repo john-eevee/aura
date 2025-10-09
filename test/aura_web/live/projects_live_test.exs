@@ -205,4 +205,155 @@ defmodule AuraWeb.ProjectsLiveTest do
       assert redirected_to == ~p"/users/log-in"
     end
   end
+
+  describe "Subprojects" do
+    setup context do
+      permissions = [
+        "view_projects",
+        "create_projects",
+        "update_projects",
+        "delete_projects",
+        "list_clients",
+        "create_client"
+      ]
+
+      register_and_log_in_user_with_permissions(context, permissions)
+    end
+
+    setup [:create_project]
+
+    test "displays subprojects tab", %{conn: conn, project: project} do
+      {:ok, show_live, _html} = live(conn, ~p"/projects/#{project}")
+
+      # Click on subprojects tab
+      assert show_live |> element("#subprojects") |> render_click() =~ "Subprojects"
+    end
+
+    test "displays empty state when no subprojects exist", %{conn: conn, project: project} do
+      {:ok, show_live, _html} = live(conn, ~p"/projects/#{project}/subprojects")
+
+      html = render(show_live)
+      assert html =~ "No subprojects"
+      assert html =~ "Get started by creating a new subproject"
+    end
+
+    test "displays subprojects in table when they exist", %{conn: conn, project: project} do
+      subproject1 = subproject_fixture(project, %{name: "API Service", platform: :server})
+      subproject2 = subproject_fixture(project, %{name: "Mobile App", platform: :android})
+
+      {:ok, show_live, _html} = live(conn, ~p"/projects/#{project}/subprojects")
+
+      html = render(show_live)
+      assert html =~ "API Service"
+      assert html =~ "Mobile App"
+      assert html =~ "Server"
+      assert html =~ "Android"
+    end
+
+    test "creates new subproject", %{conn: conn, project: project} do
+      {:ok, show_live, _html} = live(conn, ~p"/projects/#{project}/subprojects")
+
+      # Click "Add Subproject" button
+      assert show_live |> element("a", "Add Subproject") |> render_click() =~ "New Subproject"
+
+      assert_patch(show_live, ~p"/projects/#{project}/subprojects/new")
+
+      # Submit form with valid data
+      assert show_live
+             |> form("#subproject-form",
+               subproject: %{name: "New API", platform: :web, project_id: project.id}
+             )
+             |> render_submit()
+
+      assert_patch(show_live, ~p"/projects/#{project}/subprojects")
+
+      html = render(show_live)
+      assert html =~ "Subproject created successfully"
+      assert html =~ "New API"
+    end
+
+    test "validates required fields when creating subproject", %{conn: conn, project: project} do
+      {:ok, show_live, _html} = live(conn, ~p"/projects/#{project}/subprojects")
+
+      assert show_live |> element("a", "Add Subproject") |> render_click()
+
+      # Try to submit with invalid data
+      assert show_live
+             |> form("#subproject-form", subproject: %{name: "", platform: nil})
+             |> render_change() =~ "can&#39;t be blank"
+    end
+
+    test "edits existing subproject", %{conn: conn, project: project} do
+      subproject = subproject_fixture(project, %{name: "Original Name", platform: :web})
+
+      {:ok, show_live, _html} = live(conn, ~p"/projects/#{project}/subprojects")
+
+      # Click edit icon
+      show_live
+      |> element("a[href='/projects/#{project.id}/subprojects/#{subproject.id}/edit']")
+      |> render_click()
+
+      assert_patch(show_live, ~p"/projects/#{project}/subprojects/#{subproject}/edit")
+
+      # Update the subproject
+      assert show_live
+             |> form("#subproject-form",
+               subproject: %{name: "Updated Name", platform: :android, project_id: project.id}
+             )
+             |> render_submit()
+
+      assert_patch(show_live, ~p"/projects/#{project}/subprojects")
+
+      html = render(show_live)
+      assert html =~ "Subproject updated successfully"
+      assert html =~ "Updated Name"
+      assert html =~ "Android"
+      refute html =~ "Original Name"
+    end
+
+    test "deletes subproject with confirmation", %{conn: conn, project: project} do
+      subproject = subproject_fixture(project, %{name: "To Delete", platform: :ios})
+
+      {:ok, show_live, _html} = live(conn, ~p"/projects/#{project}/subprojects")
+
+      # Verify subproject is displayed
+      assert render(show_live) =~ "To Delete"
+
+      # Delete the subproject
+      assert show_live
+             |> element("a[phx-click='delete_subproject'][phx-value-id='#{subproject.id}']")
+             |> render_click()
+
+      html = render(show_live)
+      assert html =~ "Subproject deleted successfully"
+      refute html =~ "To Delete"
+    end
+
+    test "displays personalized delete confirmation", %{conn: conn, project: project} do
+      subproject = subproject_fixture(project, %{name: "Customer API", platform: :web})
+
+      {:ok, show_live, _html} = live(conn, ~p"/projects/#{project}/subprojects")
+
+      # Check that the delete link has the personalized confirmation message
+      html = render(show_live)
+      assert html =~ "Are you sure you want to delete &#39;Customer API&#39;?"
+    end
+
+    test "displays platform badges correctly", %{conn: conn, project: project} do
+      subproject_fixture(project, %{name: "Web App", platform: :web})
+      subproject_fixture(project, %{name: "Android App", platform: :android})
+      subproject_fixture(project, %{name: "iOS App", platform: :ios})
+      subproject_fixture(project, %{name: "Server App", platform: :server})
+      subproject_fixture(project, %{name: "Desktop App", platform: :desktop})
+
+      {:ok, show_live, _html} = live(conn, ~p"/projects/#{project}/subprojects")
+
+      html = render(show_live)
+      assert html =~ "Web"
+      assert html =~ "Android"
+      assert html =~ "Ios"
+      assert html =~ "Server"
+      assert html =~ "Desktop"
+    end
+  end
 end
