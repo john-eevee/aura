@@ -1,4 +1,4 @@
-defmodule Aura.Storage.Behaviour do
+defmodule Aura.Storage do
   @moduledoc """
   Behaviour for pluggable storage adapters.
 

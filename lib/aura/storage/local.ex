@@ -5,7 +5,7 @@ defmodule Aura.Storage.Local do
   Stores files in a local directory on the filesystem.
   """
 
-  @behaviour Aura.Storage.Behaviour
+  @behaviour Aura.Storage
 
   @impl true
   def store(file_path, destination, opts \\ []) do

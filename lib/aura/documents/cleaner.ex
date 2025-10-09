@@ -10,7 +10,7 @@ defmodule Aura.Documents.Cleaner do
 
   alias Aura.Documents
 
-  @cleanup_interval :timer.hours(24)
+  @default_cleanup_interval :timer.hours(24)
   @days_after_deletion 30
 
   def start_link(opts \\ []) do
@@ -31,7 +31,8 @@ defmodule Aura.Documents.Cleaner do
   end
 
   defp schedule_cleanup do
-    Process.send_after(self(), :cleanup, @cleanup_interval)
+    interval = Application.get_env(:aura, :document_cleanup_interval, @default_cleanup_interval)
+    Process.send_after(self(), :cleanup, interval)
   end
 
   defp cleanup_documents do
