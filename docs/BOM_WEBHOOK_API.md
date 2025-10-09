@@ -51,9 +51,19 @@ Content-Type: application/json
   "success": true,
   "created": 15,
   "failed": 0,
-  "message": "Successfully imported 15 dependencies"
+  "skipped": 2,
+  "message": "Successfully imported 15 dependencies",
+  "errors": []
 }
 ```
+
+**Response Fields:**
+- `success`: Boolean indicating overall success
+- `created`: Number of new BOM entries created
+- `failed`: Number of dependencies that failed to import
+- `skipped`: Number of duplicate dependencies that were skipped
+- `message`: Human-readable success message
+- `errors`: Array of error details for failed imports (empty on success)
 
 ### Error Responses
 
@@ -63,6 +73,24 @@ Content-Type: application/json
 {
   "success": false,
   "error": "Missing required fields: filename or content"
+}
+```
+
+#### Forbidden (403)
+
+```json
+{
+  "success": false,
+  "error": "You don't have permission to update this project"
+}
+```
+
+#### Not Found (404)
+
+```json
+{
+  "success": false,
+  "error": "Project not found"
 }
 ```
 
@@ -218,10 +246,13 @@ jobs:
 
 ## Security Considerations
 
-1. **Authentication**: Always use secure session management. Consider implementing API tokens for webhook integration.
-2. **HTTPS**: Always use HTTPS in production to protect credentials and data.
-3. **Project Permissions**: Ensure the authenticated user has permission to update the project's BOM.
-4. **Rate Limiting**: Consider implementing rate limiting to prevent abuse.
+1. **Authentication**: Session-based authentication is required. All requests must be authenticated.
+2. **Authorization**: Users must have the `update_projects` permission to import dependencies.
+3. **Project Access**: The system validates that the project exists before processing.
+4. **HTTPS**: Always use HTTPS in production to protect credentials and data.
+5. **Duplicate Prevention**: The system automatically skips duplicate dependencies to prevent data pollution.
+6. **Rate Limiting**: Consider implementing rate limiting to prevent abuse (not yet implemented).
+7. **File Size**: Consider setting reasonable limits on manifest file sizes.
 
 ## Future Enhancements
 

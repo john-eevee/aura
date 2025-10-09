@@ -76,23 +76,37 @@ Example from package.json:
 ```
 
 Will import:
-- **express** version **4.18.0** (version prefix removed)
-- **lodash** version **4.17.21**
-- **jest** version **29.0.0**
+- **express** version **4.18.0** (`^` prefix removed)
+- **lodash** version **4.17.21** (`~` prefix removed)
+- **jest** version **>=29.0.0** (range operators preserved)
+
+**Note on Version Prefixes:**
+- `^` and `~` prefixes are automatically removed
+- Range operators like `>=`, `<=`, `>`, `<` are preserved
+- This ensures cleaner BOM entries while maintaining version information
+
+## Duplicate Handling
+
+The system **automatically detects and skips duplicate dependencies**:
+- A duplicate is defined as having the same tool name AND version
+- When re-importing the same manifest, duplicates are skipped
+- You'll see a message like: "Successfully imported 5 dependencies (3 duplicates skipped)"
+- This prevents cluttering your BOM with redundant entries
 
 ## Tips and Best Practices
 
 ### Before Importing
 
-1. **Backup**: If you have existing BOM entries, note that import doesn't remove them
-2. **Duplicates**: The import will attempt to create all entries; check for duplicates afterward
+1. **Check Existing Entries**: Import won't remove existing entries, only add new ones
+2. **No Duplicate Worry**: The system automatically skips duplicates based on name + version
 3. **File Size**: Ensure your manifest file is not too large (most are under 100KB)
 
 ### After Importing
 
 1. **Review Entries**: Check the imported entries for accuracy
-2. **Add Metadata**: Consider adding architecture and purpose information to important entries
-3. **Clean Up**: Remove any duplicate or unwanted entries
+2. **Check Skipped Count**: If you see skipped duplicates, that's normal on re-import
+3. **Add Metadata**: Consider adding architecture and purpose information to important entries
+4. **Clean Up**: Remove any unwanted entries (duplicates are auto-skipped)
 
 ### Keeping BOMs Updated
 
