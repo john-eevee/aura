@@ -27,6 +27,8 @@ defmodule AuraWeb.CoreComponents do
 
   """
   use Phoenix.Component
+
+  use AuraWeb, :verified_routes
   use Gettext, backend: AuraWeb.Gettext
 
   alias Phoenix.LiveView.JS
@@ -661,7 +663,7 @@ defmodule AuraWeb.CoreComponents do
       >
         <.icon name="hero-squares-2x2" class="size-5" />
       </button>
-
+      
     <!-- Desktop popover -->
       <div
         id="app-menu-popover"
@@ -734,7 +736,7 @@ defmodule AuraWeb.CoreComponents do
           </ul>
         </div>
       </div>
-
+      
     <!-- Mobile toggle (shown below md only) -->
       <button
         type="button"
@@ -743,7 +745,7 @@ defmodule AuraWeb.CoreComponents do
       >
         <.icon name="hero-squares-2x2" class="size-5" />
       </button>
-
+      
     <!-- Mobile full-screen menu -->
       <div
         id="app-menu-mobile"
