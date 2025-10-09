@@ -12,6 +12,63 @@ defmodule AuraWeb.ProjectsLive.BOMFormComponent do
         <:subtitle>Use this form to manage bill of materials entries in your database.</:subtitle>
       </.header>
 
+      <%= if @action == :new_bom do %>
+        <div class="mb-6 p-4 border border-base-300 rounded-lg bg-base-200/50">
+          <h3 class="text-lg font-semibold mb-3">Import from Dependency Manifest</h3>
+          <p class="text-sm text-base-content/70 mb-4">
+            Upload a dependency manifest file (mix.lock, package.json) to automatically import dependencies.
+          </p>
+          
+          <form id="manifest-upload-form" phx-target={@myself} phx-change="validate_manifest" phx-submit="import_manifest">
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium mb-2">
+                  Dependency File
+                </label>
+                <.live_file_input upload={@uploads.manifest} class="file-input file-input-bordered w-full" />
+              </div>
+              
+              <%= for entry <- @uploads.manifest.entries do %>
+                <div class="alert alert-info">
+                  <.icon name="hero-document-text" class="w-5 h-5" />
+                  <span>File ready: {entry.client_name}</span>
+                </div>
+              <% end %>
+              
+              <%= if @import_error do %>
+                <div class="alert alert-error">
+                  <.icon name="hero-exclamation-triangle" class="w-5 h-5" />
+                  <span>{@import_error}</span>
+                </div>
+              <% end %>
+              
+              <%= if @import_result do %>
+                <div class="alert alert-success">
+                  <.icon name="hero-check-circle" class="w-5 h-5" />
+                  <span>Successfully imported {@import_result.created} dependencies</span>
+                  <%= if @import_result.failed > 0 do %>
+                    <span class="text-sm"> ({@import_result.failed} failed)</span>
+                  <% end %>
+                </div>
+              <% end %>
+              
+              <div class="flex gap-2">
+                <.button
+                  type="submit"
+                  class="btn btn-primary"
+                  disabled={@uploads.manifest.entries == []}
+                >
+                  <.icon name="hero-arrow-down-tray" class="w-4 h-4 mr-2" />
+                  Import Dependencies
+                </.button>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <div class="divider">OR</div>
+      <% end %>
+
       <.form
         for={@form}
         id="bom-form"
@@ -47,6 +104,9 @@ defmodule AuraWeb.ProjectsLive.BOMFormComponent do
     {:ok,
      socket
      |> assign(assigns)
+     |> assign(:import_error, nil)
+     |> assign(:import_result, nil)
+     |> allow_upload(:manifest, accept: ~w(.lock .json), max_entries: 1)
      |> assign_form(changeset)}
   end
 
@@ -62,6 +122,48 @@ defmodule AuraWeb.ProjectsLive.BOMFormComponent do
 
   def handle_event("save", %{"project_bom" => bom_params}, socket) do
     save_bom_entry(socket, socket.assigns.action, bom_params)
+  end
+
+  @impl true
+  def handle_event("validate_manifest", _params, socket) do
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("import_manifest", _params, socket) do
+    uploaded_files =
+      consume_uploaded_entries(socket, :manifest, fn %{path: path}, entry ->
+        content = File.read!(path)
+        {:ok, %{content: content, filename: entry.client_name}}
+      end)
+
+    case uploaded_files do
+      [%{content: content, filename: filename}] ->
+        project_id = socket.assigns.project.id
+
+        case Projects.import_bom_from_manifest(project_id, content, filename) do
+          {:ok, result} ->
+            notify_parent({:imported, result})
+
+            {:noreply,
+             socket
+             |> assign(:import_result, result)
+             |> assign(:import_error, nil)
+             |> put_flash(:info, "Successfully imported #{result.created} dependencies")}
+
+          {:error, reason} ->
+            {:noreply,
+             socket
+             |> assign(:import_error, "Failed to import: #{inspect(reason)}")
+             |> assign(:import_result, nil)}
+        end
+
+      [] ->
+        {:noreply,
+         socket
+         |> assign(:import_error, "Please select a file first")
+         |> assign(:import_result, nil)}
+    end
   end
 
   defp save_bom_entry(socket, :edit_bom, bom_params) do

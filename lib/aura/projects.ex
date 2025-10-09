@@ -358,4 +358,53 @@ defmodule Aura.Projects do
   def change_project_bom(%ProjectBOM{} = project_bom, attrs \\ %{}) do
     ProjectBOM.changeset(project_bom, attrs)
   end
+
+  @doc """
+  Creates multiple BOM entries from a list of dependencies.
+
+  ## Examples
+
+      iex> create_bom_entries_from_dependencies(project_id, [%{name: "phoenix", version: "1.7.0"}])
+      {:ok, %{created: 1, failed: 0, errors: []}}
+
+  """
+  def create_bom_entries_from_dependencies(project_id, dependencies) do
+    results =
+      Enum.map(dependencies, fn dep ->
+        attrs = %{
+          project_id: project_id,
+          tool_name: dep.name,
+          version: dep.version
+        }
+
+        create_project_bom(attrs)
+      end)
+
+    created = Enum.count(results, fn {status, _} -> status == :ok end)
+    failed = Enum.count(results, fn {status, _} -> status == :error end)
+    errors = Enum.filter(results, fn {status, _} -> status == :error end)
+
+    {:ok, %{created: created, failed: failed, errors: errors}}
+  end
+
+  @doc """
+  Parses a dependency manifest file and creates BOM entries.
+
+  ## Examples
+
+      iex> import_bom_from_manifest(project_id, file_content, "mix.lock")
+      {:ok, %{created: 5, failed: 0, errors: []}}
+
+  """
+  def import_bom_from_manifest(project_id, content, filename) do
+    alias Aura.Projects.DependencyParser
+
+    case DependencyParser.parse(content, filename) do
+      {:ok, dependencies} ->
+        create_bom_entries_from_dependencies(project_id, dependencies)
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
 end
