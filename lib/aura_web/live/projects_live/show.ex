@@ -32,6 +32,25 @@ defmodule AuraWeb.ProjectsLive.Show do
        |> assign(:project, project)
        |> assign(:documents, documents)
        |> assign(:active_tab, active_tab)}
+      socket =
+        socket
+        |> assign(:page_title, page_title(socket.assigns.live_action))
+        |> assign(:project, Projects.get_project!(id))
+        |> assign(:active_tab, active_tab)
+
+      socket =
+        case socket.assigns.live_action do
+          :new_subproject ->
+            assign(socket, :subproject, %Aura.Projects.Subproject{})
+
+          :new_bom ->
+            assign(socket, :bom_entry, %Aura.Projects.ProjectBOM{})
+
+          _ ->
+            socket
+        end
+
+      {:noreply, socket}
     else
       {:error, :unauthorized} ->
         {:noreply,
@@ -148,6 +167,14 @@ defmodule AuraWeb.ProjectsLive.Show do
   def handle_info({AuraWeb.DocumentsLive.UploadComponent, {:saved, _document}}, socket) do
     documents = Documents.list_project_documents(socket.assigns.current_scope, socket.assigns.project.id)
     {:noreply, assign(socket, documents: documents)}
+
+  def handle_info({AuraWeb.ProjectsLive.SubprojectFormComponent, {:saved, _subproject}}, socket) do
+    {:noreply, assign(socket, :project, Projects.get_project!(socket.assigns.project.id))}
+  end
+
+  @impl true
+  def handle_info({AuraWeb.ProjectsLive.BOMFormComponent, {:saved, _bom_entry}}, socket) do
+    {:noreply, assign(socket, :project, Projects.get_project!(socket.assigns.project.id))}
   end
 
   defp page_title(:show), do: "Show Project"

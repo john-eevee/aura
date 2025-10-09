@@ -20,7 +20,6 @@ defmodule AuraWeb.ProjectsLive.SubprojectFormComponent do
         phx-submit="save"
       >
         <.input field={@form[:name]} type="text" label="Name" />
-        <.input field={@form[:description]} type="textarea" label="Description" />
         <.input
           field={@form[:platform]}
           type="select"
