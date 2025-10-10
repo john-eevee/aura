@@ -42,12 +42,12 @@ defmodule Aura.Accounts.Permission do
       %{name: "delete_client", description: "Can delete clients"},
       %{name: "list_clients", description: "Can list all clients"},
 
-      # Contact permissions
-      %{name: "create_contact", description: "Can create new contacts"},
-      %{name: "view_contact", description: "Can view contact details"},
-      %{name: "update_contact", description: "Can update contact information"},
-      %{name: "delete_contact", description: "Can delete contacts"},
-      %{name: "list_contacts", description: "Can list all contacts"},
+      # Project permissions
+      %{name: "create_projects", description: "Can create new projects"},
+      %{name: "view_projects", description: "Can view project details"},
+      %{name: "update_projects", description: "Can update project information"},
+      %{name: "delete_projects", description: "Can delete projects"},
+      %{name: "list_projects", description: "Can list all projects"},
 
       # Admin permissions
       %{name: "manage_permissions", description: "Can manage user permissions"},
