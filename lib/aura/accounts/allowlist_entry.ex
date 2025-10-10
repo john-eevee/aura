@@ -20,7 +20,7 @@ defmodule Aura.Accounts.AllowlistEntry do
     allowlist_entry
     |> cast(attrs, [:type, :value, :description, :enabled])
     |> validate_required([:type, :value])
-    |> validate_inclusion(:type, ["email", "domain"])
+    |> validate_inclusion(:type, [email_type(), domain_type()])
     |> validate_format(:value, ~r/^[^\s]+$/, message: "cannot contain spaces")
     |> validate_domain_format()
     |> validate_email_format()
@@ -31,7 +31,7 @@ defmodule Aura.Accounts.AllowlistEntry do
     type = get_field(changeset, :type)
     value = get_field(changeset, :value)
 
-    if type == "domain" && value do
+    if type == domain_type() && value do
       if String.starts_with?(value, "@") do
         # Domain should not start with @
         add_error(changeset, :value, "domain should not start with @")
@@ -47,7 +47,7 @@ defmodule Aura.Accounts.AllowlistEntry do
     type = get_field(changeset, :type)
     value = get_field(changeset, :value)
 
-    if type == "email" && value do
+    if type == email_type() && value do
       if String.contains?(value, "@") do
         changeset
       else
@@ -57,4 +57,7 @@ defmodule Aura.Accounts.AllowlistEntry do
       changeset
     end
   end
+
+  def domain_type(), do: "domain"
+  def email_type(), do: "email"
 end

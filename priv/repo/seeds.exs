@@ -11,46 +11,11 @@
 # and so on) as they will fail if something goes wrong.
 
 alias Aura.Accounts
+alias Aura.Accounts.AllowlistEntry
+alias Aura.Accounts.Permission
 
 # Create permissions
-permissions = [
-  # User permissions
-  %{name: "create_user", description: "Can create new users"},
-  %{name: "view_user", description: "Can view user details"},
-  %{name: "update_user", description: "Can update user information"},
-  %{name: "delete_user", description: "Can delete users"},
-  %{name: "list_users", description: "Can list all users"},
-
-  # Client permissions
-  %{name: "create_client", description: "Can create new clients"},
-  %{name: "view_client", description: "Can view client details"},
-  %{name: "update_client", description: "Can update client information"},
-  %{name: "delete_client", description: "Can delete clients"},
-  %{name: "list_clients", description: "Can list all clients"},
-
-  # Contact permissions
-  %{name: "create_contact", description: "Can create new contacts"},
-  %{name: "view_contact", description: "Can view contact details"},
-  %{name: "update_contact", description: "Can update contact information"},
-  %{name: "delete_contact", description: "Can delete contacts"},
-  %{name: "list_contacts", description: "Can list all contacts"},
-
-  # Admin permissions
-  %{name: "manage_permissions", description: "Can manage user permissions"},
-  %{name: "view_audit_logs", description: "Can view system audit logs"},
-  %{name: "system_admin", description: "Full system administration access"},
-
-  # Allowlist permissions
-  %{name: "manage_allowlist", description: "Can manage the user registration allowlist"},
-  %{name: "view_allowlist", description: "Can view the user registration allowlist"},
-
-  # Document permissions
-  %{name: "upload_document", description: "Can upload documents to projects"},
-  %{name: "view_document", description: "Can view project documents"},
-  %{name: "update_document", description: "Can update document information"},
-  %{name: "delete_document", description: "Can delete documents"},
-  %{name: "manage_document_viewers", description: "Can manage who can view private documents"}
-]
+permissions = Aura.Accounts.Permission.permissions()
 
 Enum.each(permissions, fn permission_attrs ->
   case Accounts.create_permission(permission_attrs) do
@@ -64,11 +29,20 @@ Enum.each(permissions, fn permission_attrs ->
   end
 end)
 
-# Create default allowlist entries
-allowlist_entries = [
-  %{type: "domain", value: "example.com", description: "Example company domain", enabled: true},
-  %{type: "email", value: "admin@example.com", description: "Admin user", enabled: true}
-]
+# Allow list setup
+domain = IO.gets("Enter a domain to allow (or press Enter to skip): ") |> String.trim()
+admin_email = IO.gets("Enter an admin email to allow: ") |> String.trim()
+
+if domain == "" and admin_email == "" do
+  System.stop(1)
+  raise "No allowlist entries to create, can not proceed without at least one entry."
+end
+
+allowlist_entries =
+  [%{type: AllowlistEntry.email_type(), value: admin_email, enabled: true}] ++
+    if domain != "",
+      do: [%{type: AllowlistEntry.domain_type(), value: domain, enabled: true}],
+      else: []
 
 Enum.each(allowlist_entries, fn entry_attrs ->
   case Accounts.create_allowlist_entry(entry_attrs) do
@@ -79,13 +53,15 @@ Enum.each(allowlist_entries, fn entry_attrs ->
       IO.puts(
         "Failed to create allowlist entry #{entry_attrs.type}:#{entry_attrs.value}: #{inspect(changeset.errors)}"
       )
+
+      System.stop(1)
   end
 end)
 
 # Create admin user
 admin_attrs = %{
-  email: "admin@example.com",
-  password: "admin123456789"
+  email: IO.gets("Enter admin email: ") |> String.trim(),
+  password: IO.gets("Enter admin password: ") |> String.trim()
 }
 
 admin_user =
