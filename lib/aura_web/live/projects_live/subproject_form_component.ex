@@ -11,7 +11,7 @@ defmodule AuraWeb.ProjectsLive.SubprojectFormComponent do
         {@title}
         <:subtitle>Use this form to manage subproject records in your database.</:subtitle>
       </.header>
-
+      
       <.form
         for={@form}
         id="subproject-form"
@@ -33,7 +33,6 @@ defmodule AuraWeb.ProjectsLive.SubprojectFormComponent do
             {"Other", :other}
           ]}
         />
-
         <div class="flex justify-end">
           <.button phx-disable-with="Saving...">Save Subproject</.button>
         </div>
