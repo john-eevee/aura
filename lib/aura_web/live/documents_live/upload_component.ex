@@ -11,7 +11,7 @@ defmodule AuraWeb.DocumentsLive.UploadComponent do
         Upload Document
         <:subtitle>Upload a new document to this project.</:subtitle>
       </.header>
-
+      
       <.form
         for={@form}
         id="document-upload-form"
@@ -20,7 +20,6 @@ defmodule AuraWeb.DocumentsLive.UploadComponent do
         phx-submit="save"
       >
         <.input field={@form[:name]} type="text" label="Document Name" required />
-
         <.input
           field={@form[:visibility]}
           type="select"
@@ -30,11 +29,8 @@ defmodule AuraWeb.DocumentsLive.UploadComponent do
             {"Private (Only specific users)", :private}
           ]}
         />
-
         <div>
-          <label class="block text-sm font-medium text-zinc-700">
-            File
-          </label>
+          <label class="block text-sm font-medium text-zinc-700">File</label>
           <div
             class="mt-2 flex justify-center rounded-lg border border-dashed border-zinc-300 px-6 py-10"
             phx-drop-target={@uploads.document.ref}
@@ -51,12 +47,11 @@ defmodule AuraWeb.DocumentsLive.UploadComponent do
                 </label>
                 <p class="pl-1">or drag and drop</p>
               </div>
-              <p class="text-xs leading-5 text-zinc-600">
-                Any file up to 50MB
-              </p>
+              
+              <p class="text-xs leading-5 text-zinc-600">Any file up to 50MB</p>
             </div>
           </div>
-
+          
           <%= for entry <- @uploads.document.entries do %>
             <div class="mt-2 flex items-center justify-between rounded-md border border-zinc-200 px-4 py-2">
               <div class="flex items-center">
@@ -66,6 +61,7 @@ defmodule AuraWeb.DocumentsLive.UploadComponent do
                   ({Float.round(entry.client_size / 1024 / 1024, 2)} MB)
                 </span>
               </div>
+              
               <button
                 type="button"
                 phx-click="cancel-upload"
@@ -76,17 +72,15 @@ defmodule AuraWeb.DocumentsLive.UploadComponent do
                 <.icon name="hero-x-mark" class="h-5 w-5" />
               </button>
             </div>
-
+            
             <%= for err <- upload_errors(@uploads.document, entry) do %>
               <p class="mt-1 text-sm text-red-600">{error_to_string(err)}</p>
             <% end %>
           <% end %>
         </div>
-
+        
         <div class="flex justify-end gap-2 mt-4">
-          <.button type="button" phx-click={JS.patch(@patch)} variant="secondary">
-            Cancel
-          </.button>
+          <.button type="button" phx-click={JS.patch(@patch)} variant="secondary">Cancel</.button>
           <.button phx-disable-with="Uploading...">Upload Document</.button>
         </div>
       </.form>
