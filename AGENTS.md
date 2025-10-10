@@ -103,6 +103,21 @@ LiveViews that can work with or without authentication, **always use the __exist
 
 Controllers automatically have the `current_scope` available if they use the `:browser` pipeline.
 
+## General Routing
+
+Always check the module in the scope you are assigning new routes at.
+If there IS NO module there you must use the prefix module as normal:
+
+     scope "/" do
+        get("/", MyAppWeb.MyController, :index)
+     end
+
+If there IS a module prefix declared at the scope, strip that from the new Controller or Live module when adding it.
+
+     scope "/", MyAppWeb do
+        get("/", MyController, :index)
+     end
+
 <!-- phoenix-gen-auth-end -->
 
 <!-- usage-rules-start -->
