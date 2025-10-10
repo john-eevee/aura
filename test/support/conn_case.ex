@@ -36,7 +36,6 @@ defmodule AuraWeb.ConnCase do
     {:ok, conn: Phoenix.ConnTest.build_conn()}
   end
 
-
   @doc """
   Setup helper that registers and logs in users.
 
