@@ -92,11 +92,11 @@ defmodule AuraWeb.CoreComponents do
   """
   attr :rest, :global, include: ~w(href navigate patch method download name value disabled)
   attr :class, :string
-  attr :variant, :string, values: ~w(primary)
+  attr :variant, :string, values: ~w(primary, secondary)
   slot :inner_block, required: true
 
   def button(%{rest: rest} = assigns) do
-    variants = %{"primary" => "btn-primary", nil => "btn-primary btn-soft"}
+    variants = %{"primary" => "btn-primary", "secondary" => "btn-secondary", nil => "btn-primary btn-soft"}
 
     assigns =
       assign_new(assigns, :class, fn ->
@@ -663,7 +663,7 @@ defmodule AuraWeb.CoreComponents do
       >
         <.icon name="hero-squares-2x2" class="size-5" />
       </button>
-      
+
     <!-- Desktop popover -->
       <div
         id="app-menu-popover"
@@ -736,7 +736,7 @@ defmodule AuraWeb.CoreComponents do
           </ul>
         </div>
       </div>
-      
+
     <!-- Mobile toggle (shown below md only) -->
       <button
         type="button"
@@ -745,7 +745,7 @@ defmodule AuraWeb.CoreComponents do
       >
         <.icon name="hero-squares-2x2" class="size-5" />
       </button>
-      
+
     <!-- Mobile full-screen menu -->
       <div
         id="app-menu-mobile"
