@@ -84,7 +84,7 @@ defmodule AuraWeb.Router do
       live("/projects/:id/documents/upload", ProjectsLive.Show, :upload_document)
     end
 
-    get("/projects/:project_id/documents/:id/view", AuraWeb.DocumentController, :view)
+    get("/projects/:project_id/documents/:id/view", DocumentController, :view)
 
     post("/users/update-password", UserSessionController, :update_password)
   end
