@@ -14,7 +14,10 @@ defmodule Aura.ClientsTest do
     test "clients_topic/1 returns the correct PubSub topic" do
       scope = user_scope_fixture()
       topic = Clients.clients_topic(scope)
-      assert topic =~ ~r/^user:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}:clients$/
+
+      assert topic =~
+               ~r/^user:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}:clients$/
+
       assert topic == "user:#{scope.user.id}:clients"
     end
 
@@ -106,7 +109,9 @@ defmodule Aura.ClientsTest do
 
       update_attrs = %{name: "updated name"}
 
-      assert {:ok, %Client{} = updated_client} = Clients.update_client(scope, client, update_attrs)
+      assert {:ok, %Client{} = updated_client} =
+               Clients.update_client(scope, client, update_attrs)
+
       assert_receive {:updated, ^updated_client}
     end
 
@@ -168,7 +173,10 @@ defmodule Aura.ClientsTest do
     test "contacts_topic/1 returns the correct PubSub topic" do
       scope = user_scope_fixture()
       topic = Clients.contacts_topic(scope)
-      assert topic =~ ~r/^user:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}:contacts$/
+
+      assert topic =~
+               ~r/^user:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}:contacts$/
+
       assert topic == "user:#{scope.user.id}:contacts"
     end
 
@@ -260,7 +268,9 @@ defmodule Aura.ClientsTest do
 
       update_attrs = %{name: "updated name"}
 
-      assert {:ok, %Contact{} = updated_contact} = Clients.update_contact(scope, contact, update_attrs)
+      assert {:ok, %Contact{} = updated_contact} =
+               Clients.update_contact(scope, contact, update_attrs)
+
       assert_receive {:updated, ^updated_contact}
     end
 
