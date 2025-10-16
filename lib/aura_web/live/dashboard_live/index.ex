@@ -2,6 +2,8 @@ defmodule AuraWeb.DashboardLive.Index do
   use AuraWeb, :live_view
 
   alias Aura.Clients
+  alias Aura.Accounts.User
+  alias Aura.Accounts
 
   @impl true
   def render(assigns) do
@@ -13,14 +15,14 @@ defmodule AuraWeb.DashboardLive.Index do
           <div class="card-body">
             <div class="flex items-center gap-4">
               <div class="avatar placeholder">
-                <div class="bg-primary text-primary-content rounded-full w-16">
-                  <span class="text-2xl font-bold">{String.first(@current_scope.user.email)}</span>
+                <div class="bg-primary text-primary-content text-center pt-4 rounded-full w-16">
+                  <span class="text-2xl font-bold">{User.icon(@current_scope.user)}</span>
                 </div>
               </div>
 
               <div>
                 <h1 class="text-3xl font-bold text-base-content">
-                  Welcome back, {String.split(@current_scope.user.email, "@") |> List.first()}!
+                  Welcome back, {User.name(@current_scope.user)}!
                 </h1>
 
                 <p class="text-base-content/70 mt-1">
@@ -31,9 +33,12 @@ defmodule AuraWeb.DashboardLive.Index do
           </div>
         </div>
         <!-- Quick Actions -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+          if={Accounts.authorize(@current_scope, "list_clients")}
+        >
           <!-- Clients Management -->
-          <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 border border-base-300">
+          <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border border-base-300">
             <div class="card-body text-center">
               <div class="w-16 h-16 bg-gradient-to-br from-primary to-primary/70 rounded-full flex items-center justify-center mx-auto mb-4">
                 <.icon name="hero-users" class="text-2xl text-white" />
@@ -55,7 +60,7 @@ defmodule AuraWeb.DashboardLive.Index do
             </div>
           </div>
           <!-- Add New Client -->
-          <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 border border-base-300">
+          <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border border-base-300">
             <div class="card-body text-center">
               <div class="w-16 h-16 bg-gradient-to-br from-secondary to-secondary/70 rounded-full flex items-center justify-center mx-auto mb-4">
                 <.icon name="hero-plus" class="text-2xl text-white" />
@@ -76,7 +81,7 @@ defmodule AuraWeb.DashboardLive.Index do
             </div>
           </div>
           <!-- Contact Management -->
-          <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 border border-base-300">
+          <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border border-base-300">
             <div class="card-body text-center">
               <div class="w-16 h-16 bg-gradient-to-br from-accent to-accent/70 rounded-full flex items-center justify-center mx-auto mb-4">
                 <.icon name="hero-phone" class="text-2xl text-white" />
@@ -97,7 +102,7 @@ defmodule AuraWeb.DashboardLive.Index do
             </div>
           </div>
           <!-- Permissions Management -->
-          <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 border border-base-300">
+          <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border border-base-300">
             <div class="card-body text-center">
               <div class="w-16 h-16 bg-gradient-to-br from-info to-info/70 rounded-full flex items-center justify-center mx-auto mb-4">
                 <.icon name="hero-shield-check" class="text-2xl text-white" />

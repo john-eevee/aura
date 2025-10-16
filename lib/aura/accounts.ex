@@ -17,6 +17,8 @@ defmodule Aura.Accounts do
     Scope
   }
 
+  require Logger
+
   ## Database getters
 
   @doc """
@@ -701,14 +703,25 @@ defmodule Aura.Accounts do
       {:error, :unauthorized}
   """
   def authorize(%Scope{} = scope, permission_name) when is_binary(permission_name) do
-    if user_has_permission?(scope.user, permission_name) do
-      :ok
-    else
-      {:error, :unauthorized}
+    cond do
+      is_nil(get_permission_by_name(permission_name)) ->
+        Logger.debug("Permission not found: #{permission_name}")
+        permission_not_found_result()
+
+      user_has_permission?(scope.user, permission_name) ->
+        Logger.debug("User #{scope.user.id} authorized for #{permission_name}")
+        authorized_result()
+
+      true ->
+        Logger.debug("User #{scope.user.id} unauthorized for #{permission_name}")
+        unauthorized_result()
     end
   end
 
-  def authorize(nil, _permission_name), do: {:error, :unauthenticated}
+  def authorize(nil, _permission_name) do
+    Logger.debug("Unauthenticated access attempt")
+    unauthenticated_result()
+  end
 
   @doc """
   Checks if the current scope has any of the required permissions.
@@ -721,15 +734,40 @@ defmodule Aura.Accounts do
       iex> authorize_any(scope, ["admin_only"])
       {:error, :unauthorized}
   """
+  def authorize_any(_scope, []) do
+    Logger.debug("No permissions provided for authorization check")
+    permission_not_found_result()
+  end
+
   def authorize_any(%Scope{} = scope, permission_names) when is_list(permission_names) do
-    if user_has_any_permission?(scope.user, permission_names) do
-      :ok
-    else
-      {:error, :unauthorized}
+    cond do
+      Enum.any?(permission_names, fn name -> is_nil(get_permission_by_name(name)) end) ->
+        Logger.debug("One or more permissions not found: #{inspect(permission_names)}")
+        permission_not_found_result()
+
+      user_has_any_permission?(scope.user, permission_names) ->
+        Logger.debug("User #{scope.user.id} authorized for one of #{inspect(permission_names)}")
+        authorized_result()
+
+      true ->
+        Logger.debug("User #{scope.user.id} unauthorized for any of #{inspect(permission_names)}")
+        unauthorized_result()
     end
   end
 
-  def authorize_any(nil, _permission_names), do: {:error, :unauthenticated}
+  def authorize_any(nil, _permission_names) do
+    Logger.debug("Unauthenticated access attempt")
+    unauthenticated_result()
+  end
+
+  # Helper functions for returning standardized results
+  # These can be used in the authorize functions above if desired
+  # to keep the code DRY and consistent.
+  # Example usage: unauthorized_result() instead of {:error, :unauthorized}
+  defp unauthorized_result(), do: {:error, :unauthorized}
+  defp unauthenticated_result(), do: {:error, :unauthenticated}
+  defp permission_not_found_result(), do: {:error, :permission_not_found}
+  defp authorized_result(), do: :ok
 
   @doc """
   Gets a user with preloaded permissions.
