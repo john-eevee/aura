@@ -190,11 +190,6 @@ body {
   background-clip: text;
 }
 
-/* Card hover enhancements */
-.card:hover .card-body {
-  transform: translateY(-2px);
-}
-
 /* Smooth scrolling */
 html {
   scroll-behavior: smooth;

@@ -17,6 +17,14 @@ defmodule Aura.Accounts.User do
     timestamps(type: :utc_datetime)
   end
 
+  def name(%{email: email}) do
+    String.split(email, "@") |> List.first()
+  end
+
+  def icon(%{email: email}) do
+    String.first(email) |> String.upcase()
+  end
+
   @doc """
   A user changeset for registration.
 
