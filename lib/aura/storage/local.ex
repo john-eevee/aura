@@ -9,7 +9,7 @@ defmodule Aura.Storage.Local do
 
   @impl true
   def store(file_path, destination, opts \\ []) do
-    base_path = opts[:base_path] || storage_path()
+    base_path = base_storage_path(opts)
     full_destination = Path.join(base_path, destination)
     destination_dir = Path.dirname(full_destination)
 
@@ -23,7 +23,7 @@ defmodule Aura.Storage.Local do
 
   @impl true
   def retrieve(path, opts \\ []) do
-    base_path = opts[:base_path] || storage_path()
+    base_path = base_storage_path(opts)
     full_path = Path.join(base_path, path)
 
     if File.exists?(full_path) do
@@ -35,7 +35,7 @@ defmodule Aura.Storage.Local do
 
   @impl true
   def delete(path, opts \\ []) do
-    base_path = opts[:base_path] || storage_path()
+    base_path = base_storage_path(opts)
     full_path = Path.join(base_path, path)
 
     case File.rm(full_path) do
@@ -47,14 +47,21 @@ defmodule Aura.Storage.Local do
 
   @impl true
   def stream(path, opts \\ []) do
-    base_path = opts[:base_path] || storage_path()
+    base_path = base_storage_path(opts)
     full_path = Path.join(base_path, path)
 
     if File.exists?(full_path) do
-      stream = File.stream!(full_path, [], 2048)
+      stream = File.stream!(full_path)
       {:ok, stream}
     else
       {:error, :not_found}
+    end
+  end
+
+  defp base_storage_path(opts) do
+    case Keyword.get(opts, :base_path) do
+      nil -> storage_path()
+      base_path -> base_path
     end
   end
 
