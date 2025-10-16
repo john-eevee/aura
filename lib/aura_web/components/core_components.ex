@@ -663,7 +663,7 @@ defmodule AuraWeb.CoreComponents do
         type="button"
         class="hidden md:flex btn btn-ghost rounded-full p-2"
         aria-expanded="false"
-        phx-click={JS.toggle(to: "#app-menu-popover")}
+        phx-click={JS.show(to: "#app-menu-popover")}
       >
         <.icon name="hero-squares-2x2" class="size-5" />
       </button>
@@ -671,17 +671,19 @@ defmodule AuraWeb.CoreComponents do
     <!-- Desktop popover -->
       <div
         id="app-menu-popover"
-        class="hidden md:block absolute right-0 top-full mt-2 w-72 card bg-base-100 shadow-lg rounded-md z-50 origin-top-right py-2"
+        class="hidden absolute right-0 top-full mt-2 w-72 card bg-base-100 shadow-lg rounded-md z-50 origin-top-right py-2"
         phx-click-away={JS.hide(to: "#app-menu-popover")}
         phx-window-keydown={JS.hide(to: "#app-menu-popover")}
+        phx-key="escape"
       >
         <div class="px-3 pb-2">
           <div class="text-sm font-semibold text-base-content/90 px-1 pb-2">Apps</div>
           <ul class="space-y-1">
             <li>
               <.link
-                href="/clients"
+                navigate="/clients"
                 class="flex items-start gap-3 p-2 rounded hover:bg-base-200 transition-colors"
+                phx-click={JS.hide(to: "#app-menu-popover")}
               >
                 <.icon name="hero-briefcase" class="size-5 text-base-content/70" />
                 <div>
@@ -693,8 +695,9 @@ defmodule AuraWeb.CoreComponents do
 
             <li>
               <.link
-                href="/projects"
+                navigate="/projects"
                 class="flex items-start gap-3 p-2 rounded hover:bg-base-200 transition-colors"
+                phx-click={JS.hide(to: "#app-menu-popover")}
               >
                 <.icon name="hero-folder" class="size-5 text-base-content/70" />
                 <div>
@@ -706,8 +709,9 @@ defmodule AuraWeb.CoreComponents do
 
             <li :if={@current_scope}>
               <.link
-                href="/users/settings"
+                navigate="/users/settings"
                 class="flex items-start gap-3 p-2 rounded hover:bg-base-200 transition-colors"
+                phx-click={JS.hide(to: "#app-menu-popover")}
               >
                 <.icon name="hero-user-circle" class="size-5 text-base-content/70" />
                 <div>
@@ -722,6 +726,7 @@ defmodule AuraWeb.CoreComponents do
                 href="/users/log-out"
                 method="delete"
                 class="flex items-center gap-3 p-2 rounded hover:bg-base-200 transition-colors text-error"
+                phx-click={JS.hide(to: "#app-menu-popover")}
               >
                 <.icon name="hero-arrow-left-on-rectangle" class="size-5 text-error/80" />
                 <div class="font-medium">Log out</div>
@@ -732,6 +737,7 @@ defmodule AuraWeb.CoreComponents do
               <.link
                 href="/users/log-in"
                 class="flex items-center gap-3 p-2 rounded hover:bg-base-200 transition-colors"
+                phx-click={JS.hide(to: "#app-menu-popover")}
               >
                 <.icon name="hero-arrow-right-on-rectangle" class="size-5 text-base-content/70" />
                 <div class="font-medium">Log in</div>
@@ -770,8 +776,9 @@ defmodule AuraWeb.CoreComponents do
 
         <nav class="grid grid-cols-1 gap-4">
           <.link
-            href="/clients"
+            navigate="/clients"
             class="flex items-center gap-3 p-4 rounded-lg hover:bg-base-200 transition"
+            phx-click={JS.hide(to: "#app-menu-mobile")}
           >
             <.icon name="hero-briefcase" class="size-6" />
             <div>
@@ -781,8 +788,9 @@ defmodule AuraWeb.CoreComponents do
           </.link>
 
           <.link
-            href="/projects"
+            navigate="/projects"
             class="flex items-center gap-3 p-4 rounded-lg hover:bg-base-200 transition"
+            phx-click={JS.hide(to: "#app-menu-mobile")}
           >
             <.icon name="hero-folder" class="size-6" />
             <div>
@@ -793,8 +801,9 @@ defmodule AuraWeb.CoreComponents do
 
           <.link
             :if={@current_scope}
-            href={~p"/users/settings"}
+            navigate={~p"/users/settings"}
             class="flex items-center gap-3 p-4 rounded-lg hover:bg-base-200 transition"
+            phx-click={JS.hide(to: "#app-menu-mobile")}
           >
             <.icon name="hero-user-circle" class="size-6" />
             <div>
@@ -805,9 +814,10 @@ defmodule AuraWeb.CoreComponents do
 
           <.link
             :if={@current_scope}
-            href={~p"/users/log-out"}
+            navigate={~p"/users/log-out"}
             method="delete"
             class="flex items-center gap-3 p-4 rounded-lg hover:bg-base-200 transition text-error"
+            phx-click={JS.hide(to: "#app-menu-mobile")}
           >
             <.icon name="hero-arrow-left-on-rectangle" class="size-6 text-error/80" />
             <div class="font-medium">Log out</div>
@@ -815,8 +825,9 @@ defmodule AuraWeb.CoreComponents do
 
           <.link
             :if={!@current_scope}
-            href="/users/log-in"
+            navigate="/users/log-in"
             class="flex items-center gap-3 p-4 rounded-lg hover:bg-base-200 transition"
+            phx-click={JS.hide(to: "#app-menu-mobile")}
           >
             <.icon name="hero-arrow-right-on-rectangle" class="size-6" />
             <div class="font-medium">Log in</div>
