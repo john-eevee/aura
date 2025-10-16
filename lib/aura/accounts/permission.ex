@@ -66,4 +66,17 @@ defmodule Aura.Accounts.Permission do
       %{name: "manage_document_viewers", description: "Can manage who can view private documents"}
     ]
   end
+
+  defmodule NoSuchPermissionError do
+    @moduledoc """
+    Exception raised when a requested permission does not exist in the system.
+    """
+
+    @enforce_keys [:permission]
+    defexception [:permission]
+
+    def message(%{permission: permission}) do
+      "No such permission: #{permission}"
+    end
+  end
 end

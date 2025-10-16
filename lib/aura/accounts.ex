@@ -705,8 +705,8 @@ defmodule Aura.Accounts do
   def authorize(%Scope{} = scope, permission_name) when is_binary(permission_name) do
     cond do
       is_nil(get_permission_by_name(permission_name)) ->
-        Logger.debug("Permission not found: #{permission_name}")
-        permission_not_found_result()
+        # if a permission is beign used, and it doesn't exist, it is a developer error
+        raise Permission.NoSuchPermissionError, permission: permission_name
 
       user_has_permission?(scope.user, permission_name) ->
         Logger.debug("User #{scope.user.id} authorized for #{permission_name}")
@@ -733,17 +733,20 @@ defmodule Aura.Accounts do
 
       iex> authorize_any(scope, ["admin_only"])
       {:error, :unauthorized}
+
+      iex> authorize_any(scope, [])
+      ** (ArgumentError) ...
   """
   def authorize_any(_scope, []) do
-    Logger.debug("No permissions provided for authorization check")
-    permission_not_found_result()
+    raise ArgumentError, "No permissions provided for authorization check"
   end
 
   def authorize_any(%Scope{} = scope, permission_names) when is_list(permission_names) do
     cond do
       Enum.any?(permission_names, fn name -> is_nil(get_permission_by_name(name)) end) ->
-        Logger.debug("One or more permissions not found: #{inspect(permission_names)}")
-        permission_not_found_result()
+        raise Permission.NoSuchPermissionError,
+          permission:
+            Enum.find(permission_names, fn name -> is_nil(get_permission_by_name(name)) end)
 
       user_has_any_permission?(scope.user, permission_names) ->
         Logger.debug("User #{scope.user.id} authorized for one of #{inspect(permission_names)}")
@@ -766,7 +769,6 @@ defmodule Aura.Accounts do
   # Example usage: unauthorized_result() instead of {:error, :unauthorized}
   defp unauthorized_result(), do: {:error, :unauthorized}
   defp unauthenticated_result(), do: {:error, :unauthenticated}
-  defp permission_not_found_result(), do: {:error, :permission_not_found}
   defp authorized_result(), do: :ok
 
   @doc """
