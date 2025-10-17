@@ -5,7 +5,7 @@ defmodule AuraWeb.UserSessionControllerTest do
   alias Aura.Accounts
 
   setup do
-    %{unconfirmed_user: unconfirmed_user_fixture(), user: user_fixture()}
+    %{unconfirmed_user: unconfirmed_user_fixture(), user: user_fixture(%{}, ["list_clients"])}
   end
 
   describe "POST /users/log-in - email and password" do
