@@ -35,7 +35,7 @@ defmodule AuraWeb.DashboardLive.Index do
         <!-- Quick Actions -->
         <div
           class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
-          if={Accounts.authorize(@current_scope, "list_clients")}
+          if={match?(:ok, Accounts.authorize(@current_scope, "list_clients"))}
         >
           <!-- Clients Management -->
           <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border border-base-300">
