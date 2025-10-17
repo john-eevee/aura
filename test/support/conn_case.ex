@@ -45,6 +45,9 @@ defmodule AuraWeb.ConnCase do
   test context.
   """
   def register_and_log_in_user(%{conn: conn} = context) do
+    # Ensure permissions exist for tests that check authorization
+    Aura.AccountsFixtures.ensure_permissions_exist()
+
     user = Aura.AccountsFixtures.user_fixture()
     scope = Aura.Accounts.Scope.for_user(user)
 
@@ -94,7 +97,7 @@ defmodule AuraWeb.ConnCase do
         # Re-fetch permissions after creation
         Enum.map(permission_names, &Aura.Accounts.get_permission_by_name/1)
       else
-        permissions
+        loaded_permissions
       end
 
     Enum.each(loaded_permissions, fn permission ->
