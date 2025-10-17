@@ -40,6 +40,7 @@
     :if={@live_action in [:new, :edit]}
     id="project-modal"
     show
+    on_cancel={JS.patch(@patch)}
   >
     <.live_component
       module={AuraWeb.ProjectsLive.FormComponent}
@@ -47,11 +48,11 @@
       title={@page_title}
       action={@live_action}
       project={@project}
-      patch={~p"/projects"}
       current_user={@current_user}
       current_scope={@current_scope}
       clients={@clients}
       client_id={@client_id}
+      patch={@patch}
     />
   </.modal>
 </Layouts.app>
