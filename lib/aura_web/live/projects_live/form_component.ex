@@ -72,7 +72,7 @@ defmodule AuraWeb.ProjectsLive.FormComponent do
 
     socket = assign(socket, assigns)
 
-    {:noreply, assign_form(socket, changeset)}
+    {:ok, assign_form(socket, changeset)}
   end
 
   @impl true
