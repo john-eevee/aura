@@ -33,7 +33,7 @@ defmodule AuraWeb.ProjectsLive.Index do
     socket
     |> assign(:page_title, "Edit Project")
     |> assign(:project, Projects.get_project!(id))
-    |> assign(:patch, "/projects/" <> id <> "/show")
+    |> assign(:client_id, nil)
   end
 
   defp apply_action(socket, :new, %{"client_id" => client_id}) do
@@ -55,6 +55,7 @@ defmodule AuraWeb.ProjectsLive.Index do
     socket
     |> assign(:page_title, "Projects")
     |> assign(:project, nil)
+    |> assign(:client_id, nil)
   end
 
   @impl true
