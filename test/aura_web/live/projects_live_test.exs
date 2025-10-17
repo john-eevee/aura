@@ -38,6 +38,7 @@ defmodule AuraWeb.ProjectsLiveTest do
   describe "Index" do
     setup context do
       permissions = [
+        "list_projects",
         "view_projects",
         "create_projects",
         "update_projects",
@@ -58,32 +59,18 @@ defmodule AuraWeb.ProjectsLiveTest do
       assert html =~ project.name
     end
 
-    test "saves new project", %{conn: conn} do
+    test "there is no save action", %{conn: conn} do
       {:ok, index_live, _html} = live(conn, ~p"/projects")
 
-      assert index_live |> element("a", "New Project") |> render_click() =~ "New Project"
-
-      assert_patch(index_live, ~p"/projects/new")
-
-      assert index_live
-             |> form("#project-form", project: @invalid_attrs)
-             |> render_change() =~ "can&#39;t be blank"
-
-      assert index_live
-             |> form("#project-form", project: @create_attrs)
-             |> render_submit()
-
-      assert_patch(index_live, ~p"/projects")
-
-      html = render(index_live)
-      assert html =~ "some project"
+      refute index_live |> element(~s|a[href="/projects/new"]|, "New Project") |> render()
     end
 
     test "updates project in listing", %{conn: conn, project: project} do
       {:ok, index_live, _html} = live(conn, ~p"/projects")
 
-      assert index_live |> element("#projects-#{project.id} a", "Edit") |> render_click() =~
-               "Edit Project"
+      assert index_live
+             |> element("#projects-#{project.id} a", "Edit")
+             |> render_click() =~ "Edit"
 
       assert_patch(index_live, ~p"/projects/#{project}/edit")
 
@@ -95,10 +82,8 @@ defmodule AuraWeb.ProjectsLiveTest do
              |> form("#project-form", project: @update_attrs)
              |> render_submit()
 
-      assert_patch(index_live, ~p"/projects")
-
-      html = render(index_live)
-      assert html =~ "some updated project"
+      flash = assert_redirect(index_live, ~p"/projects/#{project.id}")
+      assert flash["info"] == "Project updated successfully"
     end
 
     test "deletes project in listing", %{conn: conn, project: project} do
@@ -112,6 +97,7 @@ defmodule AuraWeb.ProjectsLiveTest do
   describe "Show" do
     setup context do
       permissions = [
+        "list_projects",
         "view_projects",
         "create_projects",
         "update_projects",
@@ -162,6 +148,7 @@ defmodule AuraWeb.ProjectsLiveTest do
       # Create a project with permissions first
       admin_conn =
         register_and_log_in_user_with_permissions(%{conn: Phoenix.ConnTest.build_conn()}, [
+          "list_projects",
           "view_projects",
           "create_projects",
           "update_projects",
@@ -189,6 +176,7 @@ defmodule AuraWeb.ProjectsLiveTest do
       # Create a project with permissions first
       admin_conn =
         register_and_log_in_user_with_permissions(%{conn: Phoenix.ConnTest.build_conn()}, [
+          "list_projects",
           "view_projects",
           "create_projects",
           "update_projects",
@@ -209,6 +197,7 @@ defmodule AuraWeb.ProjectsLiveTest do
   describe "Subprojects" do
     setup context do
       permissions = [
+        "list_projects",
         "view_projects",
         "create_projects",
         "update_projects",
@@ -226,11 +215,11 @@ defmodule AuraWeb.ProjectsLiveTest do
       {:ok, show_live, _html} = live(conn, ~p"/projects/#{project}")
 
       # Click on subprojects tab
-      assert show_live |> element("#subprojects") |> render_click() =~ "Subprojects"
+      assert show_live |> element("#subprojects-tab") |> render_click() =~ "Subprojects"
     end
 
     test "displays empty state when no subprojects exist", %{conn: conn, project: project} do
-      {:ok, show_live, _html} = live(conn, ~p"/projects/#{project}/subprojects")
+      {:ok, show_live, _html} = live(conn, ~p"/projects/#{project}?tab=subprojects")
 
       html = render(show_live)
       assert html =~ "No subprojects"
@@ -238,10 +227,10 @@ defmodule AuraWeb.ProjectsLiveTest do
     end
 
     test "displays subprojects in table when they exist", %{conn: conn, project: project} do
-      subproject1 = subproject_fixture(project, %{name: "API Service", platform: :server})
-      subproject2 = subproject_fixture(project, %{name: "Mobile App", platform: :android})
+      _subproject1 = subproject_fixture(project, %{name: "API Service", platform: :server})
+      _subproject2 = subproject_fixture(project, %{name: "Mobile App", platform: :android})
 
-      {:ok, show_live, _html} = live(conn, ~p"/projects/#{project}/subprojects")
+      {:ok, show_live, _html} = live(conn, ~p"/projects/#{project}?tab=subprojects")
 
       html = render(show_live)
       assert html =~ "API Service"
@@ -251,10 +240,15 @@ defmodule AuraWeb.ProjectsLiveTest do
     end
 
     test "creates new subproject", %{conn: conn, project: project} do
-      {:ok, show_live, _html} = live(conn, ~p"/projects/#{project}/subprojects")
+      {:ok, show_live, _html} = live(conn, ~p"/projects/#{project}?tab=subprojects")
 
       # Click "Add Subproject" button
-      assert show_live |> element("a", "Add Subproject") |> render_click() =~ "New Subproject"
+      assert show_live
+             |> element(
+               "header a[href='/projects/#{project.id}/subprojects/new']",
+               "Add Subproject"
+             )
+             |> render_click() =~ "New Subproject"
 
       assert_patch(show_live, ~p"/projects/#{project}/subprojects/new")
 
@@ -273,20 +267,25 @@ defmodule AuraWeb.ProjectsLiveTest do
     end
 
     test "validates required fields when creating subproject", %{conn: conn, project: project} do
-      {:ok, show_live, _html} = live(conn, ~p"/projects/#{project}/subprojects")
+      {:ok, show_live, _html} = live(conn, ~p"/projects/#{project}?tab=subprojects")
 
-      assert show_live |> element("a", "Add Subproject") |> render_click()
+      assert show_live
+             |> element(
+               "header a[href='/projects/#{project.id}/subprojects/new']",
+               "Add Subproject"
+             )
+             |> render_click()
 
       # Try to submit with invalid data
       assert show_live
-             |> form("#subproject-form", subproject: %{name: "", platform: nil})
-             |> render_change() =~ "can&#39;t be blank"
+             |> form("#subproject-form", subproject: %{name: "", platform: :web})
+             |> render_submit() =~ "can&#39;t be blank"
     end
 
     test "edits existing subproject", %{conn: conn, project: project} do
       subproject = subproject_fixture(project, %{name: "Original Name", platform: :web})
 
-      {:ok, show_live, _html} = live(conn, ~p"/projects/#{project}/subprojects")
+      {:ok, show_live, _html} = live(conn, ~p"/projects/#{project}?tab=subprojects")
 
       # Click edit icon
       show_live
@@ -298,7 +297,7 @@ defmodule AuraWeb.ProjectsLiveTest do
       # Update the subproject
       assert show_live
              |> form("#subproject-form",
-               subproject: %{name: "Updated Name", platform: :android, project_id: project.id}
+               subproject: %{name: "Updated Name", platform: :android}
              )
              |> render_submit()
 
@@ -314,14 +313,16 @@ defmodule AuraWeb.ProjectsLiveTest do
     test "deletes subproject with confirmation", %{conn: conn, project: project} do
       subproject = subproject_fixture(project, %{name: "To Delete", platform: :ios})
 
-      {:ok, show_live, _html} = live(conn, ~p"/projects/#{project}/subprojects")
+      {:ok, show_live, _html} = live(conn, ~p"/projects/#{project}?tab=subprojects")
 
       # Verify subproject is displayed
       assert render(show_live) =~ "To Delete"
 
       # Delete the subproject
       assert show_live
-             |> element("a[phx-click='delete_subproject'][phx-value-id='#{subproject.id}']")
+             |> element(
+               "a[data-phx-click='delete_subproject'][data-phx-value-id='#{subproject.id}']"
+             )
              |> render_click()
 
       html = render(show_live)
@@ -332,7 +333,7 @@ defmodule AuraWeb.ProjectsLiveTest do
     test "displays personalized delete confirmation", %{conn: conn, project: project} do
       subproject = subproject_fixture(project, %{name: "Customer API", platform: :web})
 
-      {:ok, show_live, _html} = live(conn, ~p"/projects/#{project}/subprojects")
+      {:ok, show_live, _html} = live(conn, ~p"/projects/#{project}?tab=subprojects")
 
       # Check that the delete link has the personalized confirmation message
       html = render(show_live)
@@ -346,7 +347,7 @@ defmodule AuraWeb.ProjectsLiveTest do
       subproject_fixture(project, %{name: "Server App", platform: :server})
       subproject_fixture(project, %{name: "Desktop App", platform: :desktop})
 
-      {:ok, show_live, _html} = live(conn, ~p"/projects/#{project}/subprojects")
+      {:ok, show_live, _html} = live(conn, ~p"/projects/#{project}?tab=subprojects")
 
       html = render(show_live)
       assert html =~ "Web"
