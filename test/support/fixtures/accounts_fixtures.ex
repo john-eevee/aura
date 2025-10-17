@@ -55,7 +55,7 @@ defmodule Aura.AccountsFixtures do
     user
   end
 
-  def user_fixture(attrs \\ %{}) do
+  def user_fixture(attrs \\ %{}, permissions \\ []) do
     user = unconfirmed_user_fixture(attrs)
 
     token =
@@ -65,6 +65,14 @@ defmodule Aura.AccountsFixtures do
 
     {:ok, {user, _expired_tokens}} =
       Accounts.login_user_by_magic_link(token)
+
+    # Assign permissions if provided
+    if permissions != [] do
+      Enum.each(permissions, fn permission_name ->
+        permission = ensure_permission_exists(permission_name)
+        Accounts.assign_permission_to_user(user, permission)
+      end)
+    end
 
     user
   end
@@ -78,17 +86,30 @@ defmodule Aura.AccountsFixtures do
       Accounts.assign_permission_to_user(user, permission)
     end)
 
-    scope = user_scope_fixture(user)
-    scope
+    Scope.for_user(user)
   end
 
-  defp ensure_permissions_exist do
+  defp ensure_permission_exists(name) do
+    case Accounts.get_permission_by_name(name) do
+      nil ->
+        {:ok, permission} =
+          Accounts.create_permission(%{name: name, description: "Test permission"})
+
+        permission
+
+      permission ->
+        permission
+    end
+  end
+
+  def ensure_permissions_exist do
     # Create basic permissions if they don't exist
     permission_names = [
       "list_clients",
       "create_client",
       "update_client",
       "delete_client",
+      "list_projects",
       "view_projects",
       "create_projects",
       "update_projects",
@@ -107,10 +128,6 @@ defmodule Aura.AccountsFixtures do
           permission
       end
     end)
-  end
-
-  def user_scope_fixture(user) do
-    Scope.for_user(user)
   end
 
   def set_password(user) do
