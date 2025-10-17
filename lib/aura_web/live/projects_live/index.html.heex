@@ -1,60 +1,57 @@
-<.header>
-  Projects
-  <:actions><.link patch={~p"/projects/new"}><.button>New Project</.button></.link></:actions>
-</.header>
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <.header>
+    Projects
+    <:actions><.link patch={~p"/projects/new"}><.button>New Project</.button></.link></:actions>
+  </.header>
 
-<.table
-  id="projects"
-  rows={@streams.projects}
-  row_click={fn {_id, project} -> JS.navigate(~p"/projects/#{project}") end}
->
-  <:col :let={{_id, project}} label="Name">{project.name}</:col>
+  <.table
+    id="projects"
+    rows={@streams.projects}
+    row_click={fn {_id, project} -> JS.navigate(~p"/projects/#{project}") end}
+  >
+    <:col :let={{_id, project}} label="Name">{project.name}</:col>
 
-  <:col :let={{_id, _project}} label="Client">TODO: Add client name</:col>
+    <:col :let={{_id, _project}} label="Client">TODO: Add client name</:col>
 
-  <:col :let={{_id, project}} label="Status">
-    <.badge variant={status_badge_variant(project.status)}>
-      {Phoenix.Naming.humanize(project.status)}
-    </.badge>
-  </:col>
+    <:col :let={{_id, project}} label="Status">
+      <.badge variant={status_badge_variant(project.status)}>
+        {Phoenix.Naming.humanize(project.status)}
+      </.badge>
+    </:col>
 
-  <:col :let={{_id, project}} label="Created">
-    {project.inserted_at |> Calendar.strftime("%B %d, %Y")}
-  </:col>
+    <:col :let={{_id, project}} label="Created">
+      {project.inserted_at |> Calendar.strftime("%B %d, %Y")}
+    </:col>
 
-  <:action :let={{_id, project}}>
-    <.link patch={~p"/projects/#{project}/edit"}>Edit</.link>
-  </:action>
+    <:action :let={{_id, project}}>
+      <.link patch={~p"/projects/#{project}/edit"}>Edit</.link>
+    </:action>
 
-  <:action :let={{_id, project}}>
-    <.link
-      phx-click={JS.push("delete", value: %{id: project.id}) |> hide("##{project.id}")}
-      data-confirm="Are you sure?"
-    >
-      Delete
-    </.link>
-  </:action>
-</.table>
+    <:action :let={{_id, project}}>
+      <.link
+        phx-click={JS.push("delete", value: %{id: project.id}) |> hide("##{project.id}")}
+        data-confirm="Are you sure?"
+      >
+        Delete
+      </.link>
+    </:action>
+  </.table>
 
-<.modal
-  :if={@live_action in [:new, :edit]}
-  id="project-modal"
-  show
->
-  <.live_component
-    module={AuraWeb.ProjectsLive.FormComponent}
-    id={@project.id || :new}
-    title={@page_title}
-    action={@live_action}
-    project={@project}
-    patch={~p"/projects"}
-    current_user={@current_user}
-    current_scope={@current_scope}
-    clients={@clients}
-  />
-</.modal>
-defp status_variant(:in_quote), do: "warning"
-defp status_variant(:in_development), do: "info"
-defp status_variant(:maintenance), do: "success"
-defp status_variant(:done), do: "success"
-defp status_variant(:abandoned), do: "danger"
+  <.modal
+    :if={@live_action in [:new, :edit]}
+    id="project-modal"
+    show
+  >
+    <.live_component
+      module={AuraWeb.ProjectsLive.FormComponent}
+      id={@project.id || :new}
+      title={@page_title}
+      action={@live_action}
+      project={@project}
+      patch={~p"/projects"}
+      current_user={@current_user}
+      current_scope={@current_scope}
+      clients={@clients}
+    />
+  </.modal>
+</Layouts.app>
