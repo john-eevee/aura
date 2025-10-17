@@ -44,6 +44,10 @@ defmodule AuraWeb.ProjectsLive.Show do
           :new_subproject ->
             assign(socket, :subproject, %Aura.Projects.Subproject{})
 
+          :edit_subproject ->
+            subproject = Aura.Projects.get_subproject!(params["subproject_id"])
+            assign(socket, :subproject, subproject)
+
           :new_bom ->
             assign(socket, :bom_entry, %Aura.Projects.ProjectBOM{})
 
