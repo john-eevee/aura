@@ -1,7 +1,7 @@
 <.header>
   {@project.name}
   <:subtitle>{@project.description}</:subtitle>
-  
+
   <:actions><.link patch={~p"/projects/#{@project}/edit"}>Edit project</.link></:actions>
 </.header>
 
@@ -15,7 +15,7 @@
     >
       Overview
     </.tab>
-    
+
     <.tab
       id="subprojects"
       active={@active_tab == :subprojects}
@@ -24,11 +24,11 @@
     >
       Subprojects
     </.tab>
-    
+
     <.tab id="bom" active={@active_tab == :bom} phx-click="change_tab" phx-value-tab="bom">
       Bill of Materials
     </.tab>
-    
+
     <.tab
       id="documents"
       active={@active_tab == :documents}
@@ -43,15 +43,15 @@
 <div :if={@active_tab == :overview}>
   <.list>
     <:item title="Client">TODO: Add client name when scope is available</:item>
-    
+
     <:item title="Status">
       <.badge variant={status_badge_variant(@project.status)}>
         {Phoenix.Naming.humanize(@project.status)}
       </.badge>
     </:item>
-    
+
     <:item title="Created">{@project.inserted_at |> Calendar.strftime("%B %d, %Y")}</:item>
-    
+
     <:item title="Updated">{@project.updated_at |> Calendar.strftime("%B %d, %Y")}</:item>
   </.list>
 </div>
@@ -65,14 +65,14 @@
       </.link>
     </:actions>
   </.header>
-  
+
   <div :if={@project.subprojects == []}>
     <div class="text-center py-12">
       <.icon name="hero-cube" class="mx-auto h-12 w-12 text-gray-400" />
       <h3 class="mt-2 text-sm font-semibold text-gray-900">No subprojects</h3>
-      
+
       <p class="mt-1 text-sm text-gray-500">Get started by creating a new subproject.</p>
-      
+
       <div class="mt-6">
         <.link patch={~p"/projects/#{@project}/subprojects/new"}>
           <.button>Add Subproject</.button>
@@ -80,14 +80,14 @@
       </div>
     </div>
   </div>
-  
+
   <.table :if={@project.subprojects != []} id="subprojects" rows={@project.subprojects}>
     <:col :let={subproject} label="Name">{subproject.name}</:col>
-    
+
     <:col :let={subproject} label="Platform">
       <.badge variant="info">{Phoenix.Naming.humanize(subproject.platform)}</.badge>
     </:col>
-    
+
     <:action :let={subproject}>
       <.link
         patch={~p"/projects/#{@project}/subprojects/#{subproject}/edit"}
@@ -97,7 +97,7 @@
         <.icon name="hero-pencil-square" class="h-5 w-5" />
       </.link>
     </:action>
-    
+
     <:action :let={subproject}>
       <.link
         phx-click="delete_subproject"
@@ -119,22 +119,22 @@
       <.link patch={~p"/projects/#{@project}/bom/new"}><.button>Add BOM Entry</.button></.link>
     </:actions>
   </.header>
-  
+
   <.table id="bom" rows={@project.project_bom}>
     <:col :let={bom_entry} label="Tool">{bom_entry.tool_name}</:col>
-    
+
     <:col :let={bom_entry} label="Version">{bom_entry.version}</:col>
-    
+
     <:col :let={bom_entry} label="Architecture">
       <.badge variant="secondary">{Phoenix.Naming.humanize(bom_entry.architecture)}</.badge>
     </:col>
-    
+
     <:col :let={bom_entry} label="Purpose">{bom_entry.purpose}</:col>
-    
+
     <:action :let={bom_entry}>
       <.link patch={~p"/projects/#{@project}/bom/#{bom_entry}/edit"}>Edit</.link>
     </:action>
-    
+
     <:action :let={bom_entry}>
       <.link
         phx-click="delete_bom"
@@ -156,34 +156,34 @@
       </.link>
     </:actions>
   </.header>
-  
+
   <.table id="documents" rows={@documents}>
     <:col :let={document} label="Name">
       <div class="flex items-center">
         <.icon name="hero-document" class="h-5 w-5 text-zinc-500 mr-2" /> {document.name}
       </div>
     </:col>
-    
+
     <:col :let={document} label="Size">{Float.round(document.size / 1024 / 1024, 2)} MB</:col>
-    
+
     <:col :let={document} label="Visibility">
       <.badge variant={if document.visibility == :public, do: "success", else: "secondary"}>
         {Phoenix.Naming.humanize(document.visibility)}
       </.badge>
     </:col>
-    
+
     <:col :let={document} label="Uploaded by">{document.uploader.email}</:col>
-    
+
     <:col :let={document} label="Uploaded">
       {document.inserted_at |> Calendar.strftime("%b %d, %Y")}
     </:col>
-    
+
     <:action :let={document}>
       <.link href={~p"/projects/#{@project}/documents/#{document}/view"} target="_blank">
         View
       </.link>
     </:action>
-    
+
     <:action :let={document}>
       <.link
         phx-click="delete_document"
