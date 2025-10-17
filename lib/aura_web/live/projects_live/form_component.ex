@@ -23,7 +23,13 @@ defmodule AuraWeb.ProjectsLive.FormComponent do
       >
         <.input field={@form[:name]} type="text" label="Name" />
         <.input field={@form[:description]} type="textarea" label="Description" />
-        <.input field={@form[:client_id]} type="hidden" />
+        <.input
+          field={@form[:client_id]}
+          type="select"
+          label="Client"
+          prompt="Select a client"
+          options={Enum.map(@clients, &{&1.name, &1.id})}
+        />
         <.input
           field={@form[:status]}
           type="select"
@@ -57,14 +63,16 @@ defmodule AuraWeb.ProjectsLive.FormComponent do
 
     changeset =
       if action == :new and clients != [] do
-        put_change(changeset, :client_id, List.first(clients).id)
+        # If a client_id is provided in assigns, use it; otherwise default to first client
+        client_id = assigns[:client_id] || List.first(clients).id
+        put_change(changeset, :client_id, client_id)
       else
         changeset
       end
 
     socket = assign(socket, assigns)
 
-    {:ok, assign_form(socket, changeset)}
+    {:noreply, assign_form(socket, changeset)}
   end
 
   @impl true

@@ -1,7 +1,6 @@
 <Layouts.app flash={@flash} current_scope={@current_scope}>
   <.header>
     Projects
-    <:actions><.link patch={~p"/projects/new"}><.button>New Project</.button></.link></:actions>
   </.header>
 
   <.table
@@ -11,7 +10,7 @@
   >
     <:col :let={{_id, project}} label="Name">{project.name}</:col>
 
-    <:col :let={{_id, _project}} label="Client">TODO: Add client name</:col>
+    <:col :let={{_id, project}} label="Client">{project.client && project.client.name}</:col>
 
     <:col :let={{_id, project}} label="Status">
       <.badge variant={status_badge_variant(project.status)}>
@@ -52,6 +51,7 @@
       current_user={@current_user}
       current_scope={@current_scope}
       clients={@clients}
+      client_id={@client_id}
     />
   </.modal>
 </Layouts.app>

@@ -58,8 +58,7 @@ defmodule Aura.Projects do
   """
   def list_projects(%Scope{} = scope) do
     with :ok <- Aura.Accounts.authorize(scope, "list_projects") do
-      # TODO: Add client preloading when scope is available
-      Repo.all(from(p in Project))
+      Repo.all(from(p in Project, preload: [:client]))
     end
   end
 

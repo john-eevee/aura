@@ -70,6 +70,22 @@ defmodule AuraWeb.ClientLive.Show do
             </div>
           </div>
         </div>
+
+        <div class="card bg-base-100 shadow-xl border border-base-300">
+          <div class="card-body">
+            <h3 class="text-xl font-semibold mb-6 text-base-content">Projects</h3>
+            <div class="flex justify-end mb-4">
+              <.button
+                variant="primary"
+                navigate={~p"/clients/#{@client}/projects/new"}
+                class="btn btn-primary btn-sm"
+              >
+                <.icon name="hero-plus" class="w-4 h-4 mr-2" /> New Project
+              </.button>
+            </div>
+            <p class="text-base-content/70">Projects for this client will be listed here.</p>
+          </div>
+        </div>
       </div>
     </Layouts.app>
     """
