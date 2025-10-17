@@ -215,7 +215,7 @@ defmodule AuraWeb.ProjectsLiveTest do
       {:ok, show_live, _html} = live(conn, ~p"/projects/#{project}")
 
       # Click on subprojects tab
-      assert show_live |> element("#subprojects-tab") |> render_click() =~ "Subprojects"
+      assert show_live |> element("#subprojects") |> render_click() =~ "Subprojects"
     end
 
     test "displays empty state when no subprojects exist", %{conn: conn, project: project} do
