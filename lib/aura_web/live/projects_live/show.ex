@@ -17,9 +17,9 @@ defmodule AuraWeb.ProjectsLive.Show do
     with :ok <- Aura.Accounts.authorize(socket.assigns.current_scope, "view_projects") do
       active_tab =
         case params do
-          %{"tab" => "subprojects"} -> :subprojects
-          %{"tab" => "bom"} -> :bom
-          %{"tab" => "documents"} -> :documents
+          %{"tab" => "subprojects-tab"} -> :subprojects
+          %{"tab" => "bom-tab"} -> :bom
+          %{"tab" => "documents-tab"} -> :documents
           _ -> :overview
         end
 

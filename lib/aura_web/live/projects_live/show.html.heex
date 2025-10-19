@@ -8,7 +8,7 @@
 <div class="mb-6">
   <.tabs active={@active_tab}>
     <.tab
-      id="overview"
+      id="overview-tab"
       active={@active_tab == :overview}
       phx-click="change_tab"
       phx-value-tab="overview"
@@ -17,7 +17,7 @@
     </.tab>
 
     <.tab
-      id="subprojects"
+      id="subprojects-tab"
       active={@active_tab == :subprojects}
       phx-click="change_tab"
       phx-value-tab="subprojects"
@@ -30,7 +30,7 @@
     </.tab>
 
     <.tab
-      id="documents"
+      id="documents-tab"
       active={@active_tab == :documents}
       phx-click="change_tab"
       phx-value-tab="documents"
