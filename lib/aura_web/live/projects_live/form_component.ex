@@ -46,7 +46,7 @@ defmodule AuraWeb.ProjectsLive.FormComponent do
 
   @impl true
   def update(%{project: project, action: action} = assigns, socket) do
-    clients = assigns[:clients] || []
+  
     changeset = Projects.change_project(project)
 
     changeset =
