@@ -357,4 +357,14 @@ defmodule Aura.Projects do
   def change_project_bom(%ProjectBOM{} = project_bom, attrs \\ %{}) do
     ProjectBOM.changeset(project_bom, attrs)
   end
+
+  def statuses() do
+    [
+      {"In Quote", :in_quote},
+      {"In Development", :in_development},
+      {"Maintenance", :maintenance},
+      {"Done", :done},
+      {"Abandoned", :abandoned}
+    ]
+  end
 end

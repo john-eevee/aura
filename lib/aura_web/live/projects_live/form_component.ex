@@ -35,13 +35,7 @@ defmodule AuraWeb.ProjectsLive.FormComponent do
           type="select"
           label="Status"
           prompt="Select status"
-          options={[
-            {"In Quote", :in_quote},
-            {"In Development", :in_development},
-            {"Maintenance", :maintenance},
-            {"Done", :done},
-            {"Abandoned", :abandoned}
-          ]}
+          options={Projects.statuses()}
         />
         <.input field={@form[:goal]} type="textarea" label="Goal" />
         <.input field={@form[:start_date]} type="date" label="Start Date" />
