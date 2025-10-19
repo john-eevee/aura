@@ -62,7 +62,9 @@ defmodule AuraWeb.ProjectsLiveTest do
     test "there is no save action", %{conn: conn} do
       {:ok, index_live, _html} = live(conn, ~p"/projects")
 
-      refute index_live |> element(~s|a[href="/projects/new"]|, "New Project") |> render()
+      refute index_live
+             |> element(~s|a[href="/projects/new"]|, "New Project")
+             |> has_element?()
     end
 
     test "updates project in listing", %{conn: conn, project: project} do
