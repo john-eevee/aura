@@ -1,7 +1,7 @@
 <Layouts.app flash={@flash} current_scope={@current_scope}>
   <.header>
     {@project.name}
-    <:subtitle>{@project.description}</:subtitle>
+
     <:actions>
       <.popup_menu id="project-options">
         <:trigger>
@@ -16,7 +16,6 @@
             patch={~p"/projects/#{@project}/edit?return_to=show"}
             icon="hero-pencil"
           />
-          
         </:item>
       </.popup_menu>
     </:actions>
@@ -58,19 +57,135 @@
   </div>
 
   <div :if={@active_tab == :overview}>
-    <.list>
-      <:item title="Client">TODO: Add client name when scope is available</:item>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Project Details Card -->
+      <div class="lg:col-span-2 card bg-base-100 shadow-md border border-base-300">
+        <div class="card-body">
+          <h3 class="card-title mb-4 text-lg">Project Details</h3>
 
-      <:item title="Status">
-        <.badge variant={status_badge_variant(@project.status)}>
-          {Phoenix.Naming.humanize(@project.status)}
-        </.badge>
-      </:item>
+          <div class="space-y-4">
+            <!-- Description -->
+            <div
+              :if={not is_nil(@project.description) and String.length(@project.description) > 0}
+              class="border-b border-base-200 pb-3"
+            >
+              <p class="text-sm text-base-content/60 mb-1">Description</p>
+              <p class="text-base">{@project.description}</p>
+            </div>
+            
+<!-- Goal -->
+            <div
+              :if={not is_nil(@project.goal) and String.length(@project.goal) > 0}
+              class="border-b border-base-200 pb-3"
+            >
+              <p class="text-sm text-base-content/60 mb-1">Goal</p>
+              <p class="text-base">{@project.goal}</p>
+            </div>
+            
+<!-- Status -->
+            <div class="border-b border-base-200 pb-3">
+              <p class="text-sm text-base-content/60 mb-1">Status</p>
+              <.badge variant={status_badge_variant(@project.status)}>
+                {Phoenix.Naming.humanize(@project.status)}
+              </.badge>
+            </div>
+            
+<!-- Timeline -->
+            <div
+              :if={not is_nil(@project.start_date) or not is_nil(@project.end_date)}
+              class="border-b border-base-200 pb-3"
+            >
+              <p class="text-sm text-base-content/60 mb-2">Timeline</p>
+              <div class="flex gap-4 text-sm">
+                <div :if={@project.start_date}>
+                  <p class="text-base-content/60">Start</p>
+                  <p class="font-medium">
+                    {@project.start_date |> Calendar.strftime("%b %d, %Y")}
+                  </p>
+                </div>
+                <div :if={@project.end_date}>
+                  <p class="text-base-content/60">End</p>
+                  <p class="font-medium">{@project.end_date |> Calendar.strftime("%b %d, %Y")}</p>
+                </div>
+              </div>
+            </div>
+            
+<!-- Metadata -->
+            <div class="pt-2">
+              <p class="text-sm text-base-content/60 mb-2">Metadata</p>
+              <div class="flex flex-col gap-1 text-sm">
+                <p class="text-base-content/70">
+                  <span class="font-medium">Created:</span>
+                  {@project.inserted_at |> Calendar.strftime("%B %d, %Y at %H:%M")}
+                </p>
+                <p class="text-base-content/70">
+                  <span class="font-medium">Last Updated:</span>
+                  {@project.updated_at |> Calendar.strftime("%B %d, %Y at %H:%M")}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+<!-- Client Details Card -->
+      <div class="card bg-base-100 shadow-md border border-base-300">
+        <div class="card-body">
+          <h3 class="card-title mb-4 text-lg">Client</h3>
 
-      <:item title="Created">{@project.inserted_at |> Calendar.strftime("%B %d, %Y")}</:item>
+          <div :if={@project.client} class="space-y-4">
+            <!-- Client Name -->
+            <div class="border-b border-base-200 pb-3">
+              <p class="text-sm text-base-content/60 mb-1">Name</p>
+              <.link
+                navigate={~p"/clients/#{@project.client.id}"}
+                class="link link-primary font-semibold"
+              >
+                {@project.client.name}
+              </.link>
+            </div>
+            
+<!-- Industry -->
+            <div :if={@project.client.industry_type} class="border-b border-base-200 pb-3">
+              <p class="text-sm text-base-content/60 mb-1">Industry</p>
+              <p class="font-medium text-base">{@project.client.industry_type}</p>
+            </div>
+            
+<!-- Client Status -->
+            <div class="border-b border-base-200 pb-3">
+              <p class="text-sm text-base-content/60 mb-1">Status</p>
+              <.badge variant={
+                if @project.client.status == :active, do: "success", else: "warning"
+              }>
+                {Phoenix.Naming.humanize(@project.client.status)}
+              </.badge>
+            </div>
+            
+<!-- Since -->
+            <div :if={@project.client.since} class="pb-3">
+              <p class="text-sm text-base-content/60 mb-1">Client Since</p>
+              <p class="font-medium text-base">
+                {@project.client.since |> Calendar.strftime("%B %d, %Y")}
+              </p>
+            </div>
+            
+<!-- View Client Button -->
+            <div class="pt-2">
+              <.link
+                navigate={~p"/clients/#{@project.client.id}"}
+                class="btn btn-sm btn-outline w-full"
+              >
+                <.icon name="hero-arrow-top-right-on-square" class="w-4 h-4" /> View Client
+              </.link>
+            </div>
+          </div>
 
-      <:item title="Updated">{@project.updated_at |> Calendar.strftime("%B %d, %Y")}</:item>
-    </.list>
+          <div :if={!@project.client} class="text-center py-6">
+            <p class="text-base-content/60 text-sm">No client assigned</p>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div :if={@active_tab == :subprojects}>
