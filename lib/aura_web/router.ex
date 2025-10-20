@@ -64,7 +64,7 @@ defmodule AuraWeb.Router do
       live("/clients", ClientLive.Index, :index)
       live("/clients/:id", ClientLive.Show, :show)
       live("/clients/:id/edit", ClientLive.Form, :edit)
-      live("/clients/:client_id/projects/new", ProjectsLive.Index, :new)
+
       # Contact
       live("/contacts/new", ContactLive.Form, :new)
       live("/contacts", ContactLive.Index, :index)
