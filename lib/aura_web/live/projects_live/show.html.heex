@@ -1,253 +1,255 @@
-<.header>
-  {@project.name}
-  <:subtitle>{@project.description}</:subtitle>
-
-  <:actions>
-    <.link patch={~p"/projects/#{@project}/edit?return_to=show"}>Edit project</.link>
-  </:actions>
-</.header>
-
-<div class="mb-6">
-  <.tabs active={@active_tab}>
-    <.tab
-      id="overview-tab"
-      active={@active_tab == :overview}
-      phx-click="change_tab"
-      phx-value-tab="overview"
-    >
-      Overview
-    </.tab>
-
-    <.tab
-      id="subprojects-tab"
-      active={@active_tab == :subprojects}
-      phx-click="change_tab"
-      phx-value-tab="subprojects"
-    >
-      Subprojects
-    </.tab>
-
-    <.tab id="bom" active={@active_tab == :bom} phx-click="change_tab" phx-value-tab="bom">
-      Bill of Materials
-    </.tab>
-
-    <.tab
-      id="documents-tab"
-      active={@active_tab == :documents}
-      phx-click="change_tab"
-      phx-value-tab="documents"
-    >
-      Documents
-    </.tab>
-  </.tabs>
-</div>
-
-<div :if={@active_tab == :overview}>
-  <.list>
-    <:item title="Client">TODO: Add client name when scope is available</:item>
-
-    <:item title="Status">
-      <.badge variant={status_badge_variant(@project.status)}>
-        {Phoenix.Naming.humanize(@project.status)}
-      </.badge>
-    </:item>
-
-    <:item title="Created">{@project.inserted_at |> Calendar.strftime("%B %d, %Y")}</:item>
-
-    <:item title="Updated">{@project.updated_at |> Calendar.strftime("%B %d, %Y")}</:item>
-  </.list>
-</div>
-
-<div :if={@active_tab == :subprojects}>
+<Layouts.app flash={@flash} current_scope={@current_scope}>
   <.header>
-    Subprojects
+    {@project.name}
+    <:subtitle>{@project.description}</:subtitle>
+
     <:actions>
-      <.link patch={~p"/projects/#{@project}/subprojects/new"}>
-        <.button>Add Subproject</.button>
-      </.link>
+      <.link patch={~p"/projects/#{@project}/edit?return_to=show"}>Edit project</.link>
     </:actions>
   </.header>
 
-  <div :if={@subprojects == []}>
-    <div class="text-center py-12">
-      <.icon name="hero-cube" class="mx-auto h-12 w-12 text-gray-400" />
-      <h3 class="mt-2 text-sm font-semibold text-gray-900">No subprojects</h3>
+  <div class="mb-6">
+    <.tabs active={@active_tab}>
+      <.tab
+        id="overview-tab"
+        active={@active_tab == :overview}
+        phx-click="change_tab"
+        phx-value-tab="overview"
+      >
+        Overview
+      </.tab>
 
-      <p class="mt-1 text-sm text-gray-500">Get started by creating a new subproject.</p>
+      <.tab
+        id="subprojects-tab"
+        active={@active_tab == :subprojects}
+        phx-click="change_tab"
+        phx-value-tab="subprojects"
+      >
+        Subprojects
+      </.tab>
 
-      <div class="mt-6">
+      <.tab id="bom" active={@active_tab == :bom} phx-click="change_tab" phx-value-tab="bom">
+        Bill of Materials
+      </.tab>
+
+      <.tab
+        id="documents-tab"
+        active={@active_tab == :documents}
+        phx-click="change_tab"
+        phx-value-tab="documents"
+      >
+        Documents
+      </.tab>
+    </.tabs>
+  </div>
+
+  <div :if={@active_tab == :overview}>
+    <.list>
+      <:item title="Client">TODO: Add client name when scope is available</:item>
+
+      <:item title="Status">
+        <.badge variant={status_badge_variant(@project.status)}>
+          {Phoenix.Naming.humanize(@project.status)}
+        </.badge>
+      </:item>
+
+      <:item title="Created">{@project.inserted_at |> Calendar.strftime("%B %d, %Y")}</:item>
+
+      <:item title="Updated">{@project.updated_at |> Calendar.strftime("%B %d, %Y")}</:item>
+    </.list>
+  </div>
+
+  <div :if={@active_tab == :subprojects}>
+    <.header>
+      Subprojects
+      <:actions>
         <.link patch={~p"/projects/#{@project}/subprojects/new"}>
           <.button>Add Subproject</.button>
         </.link>
+      </:actions>
+    </.header>
+
+    <div :if={@subprojects == []}>
+      <div class="text-center py-12">
+        <.icon name="hero-cube" class="mx-auto h-12 w-12 text-gray-400" />
+        <h3 class="mt-2 text-sm font-semibold text-gray-900">No subprojects</h3>
+
+        <p class="mt-1 text-sm text-gray-500">Get started by creating a new subproject.</p>
+
+        <div class="mt-6">
+          <.link patch={~p"/projects/#{@project}/subprojects/new"}>
+            <.button>Add Subproject</.button>
+          </.link>
+        </div>
       </div>
     </div>
+
+    <.table :if={@subprojects != []} id="subprojects" rows={@subprojects}>
+      <:col :let={subproject} label="Name">{subproject.name}</:col>
+
+      <:col :let={subproject} label="Platform">
+        <.badge variant="info">{Phoenix.Naming.humanize(subproject.platform)}</.badge>
+      </:col>
+
+      <:action :let={subproject}>
+        <.link
+          patch={~p"/projects/#{@project}/subprojects/#{subproject}/edit"}
+          class="text-gray-600 hover:text-gray-900"
+          title="Edit"
+        >
+          <.icon name="hero-pencil-square" class="h-5 w-5" />
+        </.link>
+      </:action>
+
+      <:action :let={subproject}>
+        <.link
+          phx-click="delete_subproject"
+          phx-value-id={subproject.id}
+          data-confirm={"Are you sure you want to delete '#{subproject.name}'?"}
+          class="text-red-600 hover:text-red-900"
+          title="Delete"
+        >
+          <.icon name="hero-trash" class="h-5 w-5" />
+        </.link>
+      </:action>
+    </.table>
   </div>
 
-  <.table :if={@subprojects != []} id="subprojects" rows={@subprojects}>
-    <:col :let={subproject} label="Name">{subproject.name}</:col>
+  <div :if={@active_tab == :bom}>
+    <.header>
+      Bill of Materials
+      <:actions>
+        <!-- check patch link -->
+        <.link patch={~p"/projects/#{@project}/bom/new?tab=bom-tab"}>
+          <.button>Add BOM Entry</.button>
+        </.link>
+      </:actions>
+    </.header>
 
-    <:col :let={subproject} label="Platform">
-      <.badge variant="info">{Phoenix.Naming.humanize(subproject.platform)}</.badge>
-    </:col>
+    <.table id="bom" rows={@bom_entries}>
+      <:col :let={bom_entry} label="Tool">{bom_entry.tool_name}</:col>
 
-    <:action :let={subproject}>
-      <.link
-        patch={~p"/projects/#{@project}/subprojects/#{subproject}/edit"}
-        class="text-gray-600 hover:text-gray-900"
-        title="Edit"
-      >
-        <.icon name="hero-pencil-square" class="h-5 w-5" />
-      </.link>
-    </:action>
+      <:col :let={bom_entry} label="Version">{bom_entry.version}</:col>
 
-    <:action :let={subproject}>
-      <.link
-        phx-click="delete_subproject"
-        phx-value-id={subproject.id}
-        data-confirm={"Are you sure you want to delete '#{subproject.name}'?"}
-        class="text-red-600 hover:text-red-900"
-        title="Delete"
-      >
-        <.icon name="hero-trash" class="h-5 w-5" />
-      </.link>
-    </:action>
-  </.table>
-</div>
+      <:col :let={bom_entry} label="Architecture">
+        <.badge variant="secondary">{Phoenix.Naming.humanize(bom_entry.architecture)}</.badge>
+      </:col>
 
-<div :if={@active_tab == :bom}>
-  <.header>
-    Bill of Materials
-    <:actions>
-      <!-- check patch link -->
-      <.link patch={~p"/projects/#{@project}/bom/new?tab=bom-tab"}>
-        <.button>Add BOM Entry</.button>
-      </.link>
-    </:actions>
-  </.header>
+      <:col :let={bom_entry} label="Purpose">{bom_entry.purpose}</:col>
 
-  <.table id="bom" rows={@bom_entries}>
-    <:col :let={bom_entry} label="Tool">{bom_entry.tool_name}</:col>
+      <:action :let={bom_entry}>
+        <.link patch={~p"/projects/#{@project}/bom/#{bom_entry}/edit?tab=bom-tab"}>Edit</.link>
+      </:action>
 
-    <:col :let={bom_entry} label="Version">{bom_entry.version}</:col>
+      <:action :let={bom_entry}>
+        <.link
+          phx-click="delete_bom"
+          phx-value-id={bom_entry.id}
+          data-confirm="Are you sure?"
+        >
+          Delete
+        </.link>
+      </:action>
+    </.table>
+  </div>
 
-    <:col :let={bom_entry} label="Architecture">
-      <.badge variant="secondary">{Phoenix.Naming.humanize(bom_entry.architecture)}</.badge>
-    </:col>
+  <div :if={@active_tab == :documents}>
+    <.header>
+      Documents
+      <:actions>
+        <.link patch={~p"/projects/#{@project}/documents/upload"}>
+          <.button>Upload Document</.button>
+        </.link>
+      </:actions>
+    </.header>
 
-    <:col :let={bom_entry} label="Purpose">{bom_entry.purpose}</:col>
+    <.table id="documents" rows={@documents}>
+      <:col :let={document} label="Name">
+        <div class="flex items-center">
+          <.icon name="hero-document" class="h-5 w-5 text-zinc-500 mr-2" /> {document.name}
+        </div>
+      </:col>
 
-    <:action :let={bom_entry}>
-      <.link patch={~p"/projects/#{@project}/bom/#{bom_entry}/edit?tab=bom-tab"}>Edit</.link>
-    </:action>
+      <:col :let={document} label="Size">{Float.round(document.size / 1024 / 1024, 2)} MB</:col>
 
-    <:action :let={bom_entry}>
-      <.link
-        phx-click="delete_bom"
-        phx-value-id={bom_entry.id}
-        data-confirm="Are you sure?"
-      >
-        Delete
-      </.link>
-    </:action>
-  </.table>
-</div>
+      <:col :let={document} label="Visibility">
+        <.badge variant={if document.visibility == :public, do: "success", else: "secondary"}>
+          {Phoenix.Naming.humanize(document.visibility)}
+        </.badge>
+      </:col>
 
-<div :if={@active_tab == :documents}>
-  <.header>
-    Documents
-    <:actions>
-      <.link patch={~p"/projects/#{@project}/documents/upload"}>
-        <.button>Upload Document</.button>
-      </.link>
-    </:actions>
-  </.header>
+      <:col :let={document} label="Uploaded by">{document.uploader.email}</:col>
 
-  <.table id="documents" rows={@documents}>
-    <:col :let={document} label="Name">
-      <div class="flex items-center">
-        <.icon name="hero-document" class="h-5 w-5 text-zinc-500 mr-2" /> {document.name}
-      </div>
-    </:col>
+      <:col :let={document} label="Uploaded">
+        {document.inserted_at |> Calendar.strftime("%b %d, %Y")}
+      </:col>
 
-    <:col :let={document} label="Size">{Float.round(document.size / 1024 / 1024, 2)} MB</:col>
+      <:action :let={document}>
+        <.link href={~p"/projects/#{@project}/documents/#{document}/view"} target="_blank">
+          View
+        </.link>
+      </:action>
 
-    <:col :let={document} label="Visibility">
-      <.badge variant={if document.visibility == :public, do: "success", else: "secondary"}>
-        {Phoenix.Naming.humanize(document.visibility)}
-      </.badge>
-    </:col>
+      <:action :let={document}>
+        <.link
+          phx-click="delete_document"
+          phx-value-id={document.id}
+          data-confirm="Are you sure you want to delete this document?"
+        >
+          Delete
+        </.link>
+      </:action>
+    </.table>
+  </div>
 
-    <:col :let={document} label="Uploaded by">{document.uploader.email}</:col>
+  <.modal
+    :if={@live_action in [:new_subproject, :edit_subproject]}
+    id="subproject-modal"
+    show
+    on_cancel={JS.patch(~p"/projects/#{@project}?tab=subprojects-tab")}
+  >
+    <.live_component
+      module={AuraWeb.ProjectsLive.SubprojectFormComponent}
+      id={@subproject.id || :new}
+      title={@page_title}
+      action={@live_action}
+      subproject={@subproject}
+      project={@project}
+      patch={~p"/projects/#{@project}?tab=subprojects-tab"}
+    />
+  </.modal>
 
-    <:col :let={document} label="Uploaded">
-      {document.inserted_at |> Calendar.strftime("%b %d, %Y")}
-    </:col>
+  <.modal
+    :if={@live_action == :new_bom}
+    id="bom-modal"
+    show
+    on_cancel={JS.patch(~p"/projects/#{@project}?tab=bom-tab")}
+  >
+    <.live_component
+      module={AuraWeb.ProjectsLive.BOMFormComponent}
+      id={@bom_entry.id || :new}
+      title={@page_title}
+      action={@live_action}
+      bom_entry={@bom_entry}
+      project={@project}
+      patch={~p"/projects/#{@project}?tab=bom-tab"}
+    />
+  </.modal>
 
-    <:action :let={document}>
-      <.link href={~p"/projects/#{@project}/documents/#{document}/view"} target="_blank">
-        View
-      </.link>
-    </:action>
-
-    <:action :let={document}>
-      <.link
-        phx-click="delete_document"
-        phx-value-id={document.id}
-        data-confirm="Are you sure you want to delete this document?"
-      >
-        Delete
-      </.link>
-    </:action>
-  </.table>
-</div>
-
-<.modal
-  :if={@live_action in [:new_subproject, :edit_subproject]}
-  id="subproject-modal"
-  show
-  on_cancel={JS.patch(~p"/projects/#{@project}?tab=subprojects-tab")}
->
-  <.live_component
-    module={AuraWeb.ProjectsLive.SubprojectFormComponent}
-    id={@subproject.id || :new}
-    title={@page_title}
-    action={@live_action}
-    subproject={@subproject}
-    project={@project}
-    patch={~p"/projects/#{@project}?tab=subprojects-tab"}
-  />
-</.modal>
-
-<.modal
-  :if={@live_action == :new_bom}
-  id="bom-modal"
-  show
-  on_cancel={JS.patch(~p"/projects/#{@project}?tab=bom-tab")}
->
-  <.live_component
-    module={AuraWeb.ProjectsLive.BOMFormComponent}
-    id={@bom_entry.id || :new}
-    title={@page_title}
-    action={@live_action}
-    bom_entry={@bom_entry}
-    project={@project}
-    patch={~p"/projects/#{@project}?tab=bom-tab"}
-  />
-</.modal>
-
-<.modal
-  :if={@live_action == :upload_document}
-  id="document-upload-modal"
-  show
-  on_cancel={JS.patch(~p"/projects/#{@project}?tab=documents-tab")}
->
-  <.live_component
-    module={AuraWeb.DocumentsLive.UploadComponent}
-    id={:new}
-    title={@page_title}
-    action={@live_action}
-    project={@project}
-    current_scope={@current_scope}
-    patch={~p"/projects/#{@project}?tab=documents-tab"}
-  />
-</.modal>
+  <.modal
+    :if={@live_action == :upload_document}
+    id="document-upload-modal"
+    show
+    on_cancel={JS.patch(~p"/projects/#{@project}?tab=documents-tab")}
+  >
+    <.live_component
+      module={AuraWeb.DocumentsLive.UploadComponent}
+      id={:new}
+      title={@page_title}
+      action={@live_action}
+      project={@project}
+      current_scope={@current_scope}
+      patch={~p"/projects/#{@project}?tab=documents-tab"}
+    />
+  </.modal>
+</Layouts.app>
