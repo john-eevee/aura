@@ -117,22 +117,23 @@ defmodule AuraWeb.ProjectsLive.Show do
     # setup assign with initial data
     socket = assign(socket, :active_tab, active_tab)
 
-    case active_tab do
-      :documents ->
-        documents = Documents.list_project_documents(current_scope, project.id)
-        assign(socket, :documents, documents)
+    socket =
+      case active_tab do
+        :documents ->
+          documents = Documents.list_project_documents(current_scope, project.id)
+          assign(socket, :documents, documents)
 
-      :subprojects ->
-        subprojects = Projects.list_subprojects(project.id)
-        assign(socket, :subprojects, subprojects)
+        :subprojects ->
+          subprojects = Projects.list_subprojects(project.id)
+          assign(socket, :subprojects, subprojects)
 
-      :bom ->
-        bom_entries = Projects.list_project_bom(project.id)
-        assign(socket, :bom_entries, bom_entries)
+        :bom ->
+          bom_entries = Projects.list_project_bom(project.id)
+          assign(socket, :bom_entries, bom_entries)
 
-      _else ->
-        socket
-    end
+        _else ->
+          socket
+      end
 
     {:noreply, socket}
   end
