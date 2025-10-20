@@ -23,7 +23,7 @@
     </:col>
 
     <:action :let={{_id, project}}>
-      <.link patch={~p"/projects/#{project}/edit"}>Edit</.link>
+      <.link patch={~p"/projects/#{project}/edit?return_to=index"}>Edit</.link>
     </:action>
 
     <:action :let={{_id, project}}>

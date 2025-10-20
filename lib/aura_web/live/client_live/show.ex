@@ -2,6 +2,8 @@ defmodule AuraWeb.ClientLive.Show do
   use AuraWeb, :live_view
 
   alias Aura.Clients
+  alias Aura.Projects
+  alias Aura.Projects.Project
 
   @impl true
   def render(assigns) do
@@ -77,16 +79,85 @@ defmodule AuraWeb.ClientLive.Show do
             <div class="flex justify-end mb-4">
               <.button
                 variant="primary"
-                navigate={~p"/clients/#{@client}/projects/new"}
+                phx-click={JS.patch(~p"/clients/#{@client}?action=new_project")}
                 class="btn btn-primary btn-sm"
               >
                 <.icon name="hero-plus" class="w-4 h-4 mr-2" /> New Project
               </.button>
             </div>
-            <p class="text-base-content/70">Projects for this client will be listed here.</p>
+
+            <div :if={@projects == []}>
+              <p class="text-base-content/70">No projects yet. Create one to get started!</p>
+            </div>
+
+            <div :if={@projects != []}>
+              <div class="space-y-2">
+                <div
+                  :for={project <- @projects}
+                  class="flex items-center justify-between p-3 border border-base-300 rounded-lg"
+                >
+                  <div>
+                    <p class="font-medium">{project.name}</p>
+                    <p class="text-sm text-base-content/60">{project.description}</p>
+                  </div>
+                  <div class="flex gap-2">
+                    <.link navigate={~p"/projects/#{project}"}>
+                      <.button class="btn btn-sm btn-ghost">
+                        <.icon name="hero-eye" class="w-4 h-4" />
+                      </.button>
+                    </.link>
+                    <.link patch={
+                      ~p"/clients/#{@client}?action=edit_project&project_id=#{project.id}"
+                    }>
+                      <.button class="btn btn-sm btn-ghost">
+                        <.icon name="hero-pencil-square" class="w-4 h-4" />
+                      </.button>
+                    </.link>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+
+      <.modal
+        :if={@live_action == :new_project}
+        id="new-project-modal"
+        show
+        on_cancel={JS.patch(~p"/clients/#{@client}")}
+      >
+        <.live_component
+          module={AuraWeb.ProjectsLive.FormComponent}
+          id={:new}
+          title="New Project"
+          action={:new}
+          project={%Project{}}
+          current_user={@current_user}
+          current_scope={@current_scope}
+          client_id={@client.id}
+          patch={~p"/clients/#{@client}"}
+        />
+      </.modal>
+
+      <.modal
+        :if={@live_action == :edit_project}
+        id="edit-project-modal"
+        show
+        on_cancel={JS.patch(~p"/clients/#{@client}")}
+      >
+        <.live_component
+          module={AuraWeb.ProjectsLive.FormComponent}
+          id={@editing_project.id || :new}
+          title="Edit Project"
+          action={:edit}
+          project={@editing_project}
+          current_user={@current_user}
+          current_scope={@current_scope}
+          client_id={@client.id}
+          patch={~p"/clients/#{@client}"}
+        />
+      </.modal>
     </Layouts.app>
     """
   end
@@ -99,10 +170,15 @@ defmodule AuraWeb.ClientLive.Show do
 
     case Clients.get_client(socket.assigns.current_scope, id) do
       {:ok, client} ->
+        projects = Projects.list_projects_for_client(client.id)
+
         {:ok,
          socket
          |> assign(:page_title, "Show Client")
-         |> assign(:client, client)}
+         |> assign(:current_user, socket.assigns.current_scope.user)
+         |> assign(:client, client)
+         |> assign(:projects, projects)
+         |> assign(:editing_project, nil)}
 
       {:error, :unauthorized} ->
         {:ok,
@@ -116,6 +192,42 @@ defmodule AuraWeb.ClientLive.Show do
          |> put_flash(:error, "Client not found.")
          |> redirect(to: ~p"/clients")}
     end
+  end
+
+  @impl true
+  def handle_params(params, _url, socket) do
+    {:noreply, apply_action(socket, params)}
+  end
+
+  defp apply_action(socket, %{"action" => "new_project"}) do
+    socket
+    |> assign(:live_action, :new_project)
+    |> assign(:editing_project, nil)
+  end
+
+  defp apply_action(socket, %{"action" => "edit_project", "project_id" => project_id}) do
+    project = Projects.get_project!(project_id)
+
+    socket
+    |> assign(:live_action, :edit_project)
+    |> assign(:editing_project, project)
+  end
+
+  defp apply_action(socket, _params) do
+    socket
+    |> assign(:live_action, nil)
+    |> assign(:editing_project, nil)
+  end
+
+  @impl true
+  def handle_info({AuraWeb.ProjectsLive.FormComponent, {:saved, _project}}, socket) do
+    # Reload projects list
+    projects = Projects.list_projects_for_client(socket.assigns.client.id)
+
+    {:noreply,
+     socket
+     |> assign(:projects, projects)
+     |> push_patch(to: ~p"/clients/#{socket.assigns.client}")}
   end
 
   @impl true

@@ -36,7 +36,7 @@ defmodule AuraWeb.ProjectsLive.FormComponent do
         <.input field={@form[:end_date]} type="date" label="End Date" />
 
         <div class="flex justify-end gap-4">
-          <.button variant="primary" phx-click={JS.patch(~p"/projects")}>Cancel</.button>
+          <.button variant="primary" phx-click={JS.patch(@cancel_path)}>Cancel</.button>
           <.button phx-disable-with="Saving...">Save Project</.button>
         </div>
       </.form>
@@ -46,7 +46,6 @@ defmodule AuraWeb.ProjectsLive.FormComponent do
 
   @impl true
   def update(%{project: project, action: action} = assigns, socket) do
-  
     changeset = Projects.change_project(project)
 
     changeset =
@@ -57,7 +56,28 @@ defmodule AuraWeb.ProjectsLive.FormComponent do
         changeset
       end
 
-    socket = assign(socket, assigns)
+    cancel_path =
+      if action == :new do
+        "/clients/#{assigns[:client_id]}"
+      else
+        assigns[:patch] || "/projects"
+      end
+
+    # Determine if navigation should be a patch (same view) or navigate (different view)
+    # If the cancel_path (and patch) starts with /projects/ (project show page), use navigate
+    navigate_on_save =
+      case cancel_path do
+        # Returning to project show page - different view
+        "/projects/" <> _ -> true
+        # Returning to index or client page - same view
+        _ -> false
+      end
+
+    socket =
+      socket
+      |> assign(assigns)
+      |> assign(:cancel_path, cancel_path)
+      |> assign(:navigate_on_save, navigate_on_save)
 
     {:ok, assign_form(socket, changeset)}
   end
@@ -85,10 +105,19 @@ defmodule AuraWeb.ProjectsLive.FormComponent do
       {:ok, project} ->
         notify_parent({:saved, project})
 
-        {:noreply,
-         socket
-         |> put_flash(:info, "Project updated successfully")
-         |> push_navigate(to: socket.assigns.patch)}
+        # Use push_navigate for different LiveViews, push_patch for same view
+        result =
+          if socket.assigns.navigate_on_save do
+            socket
+            |> put_flash(:info, "Project updated successfully")
+            |> push_navigate(to: socket.assigns.patch)
+          else
+            socket
+            |> put_flash(:info, "Project updated successfully")
+            |> push_patch(to: socket.assigns.patch)
+          end
+
+        {:noreply, result}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign_form(socket, changeset)}
@@ -96,14 +125,26 @@ defmodule AuraWeb.ProjectsLive.FormComponent do
   end
 
   defp save_project(socket, :new, project_params) do
+    # merge client id from assigns into project_params
+    project_params = Map.put(project_params, "client_id", socket.assigns.client_id)
+
     case Projects.create_project(socket.assigns.current_scope, project_params) do
       {:ok, project} ->
         notify_parent({:saved, project})
 
-        {:noreply,
-         socket
-         |> put_flash(:info, "Project created successfully")
-         |> push_navigate(to: socket.assigns.patch)}
+        # Use push_navigate for different LiveViews, push_patch for same view
+        result =
+          if socket.assigns.navigate_on_save do
+            socket
+            |> put_flash(:info, "Project created successfully")
+            |> push_navigate(to: socket.assigns.patch)
+          else
+            socket
+            |> put_flash(:info, "Project created successfully")
+            |> push_patch(to: socket.assigns.patch)
+          end
+
+        {:noreply, result}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign_form(socket, changeset)}

@@ -29,18 +29,34 @@ defmodule AuraWeb.ProjectsLive.Index do
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
 
-  defp apply_action(socket, :edit, %{"id" => id}) do
+  defp apply_action(socket, :edit, %{"client_id" => client_id, "id" => id}) do
+    socket
+    |> assign(:page_title, "Edit Project")
+    |> assign(:project, Projects.get_project!(id))
+    |> assign(:client_id, client_id)
+    |> assign(:patch, "/clients/#{client_id}")
+  end
+
+  defp apply_action(socket, :edit, %{"id" => id} = params) do
+    return_to = params["return_to"] || "index"
+
+    patch_path =
+      case return_to do
+        "show" -> "/projects/#{id}"
+        _ -> "/projects"
+      end
+
     socket
     |> assign(:page_title, "Edit Project")
     |> assign(:project, Projects.get_project!(id))
     |> assign(:client_id, nil)
-    |> assign(:patch, "/projects/#{id}")
+    |> assign(:patch, patch_path)
   end
 
   defp apply_action(socket, :new, %{"client_id" => client_id}) do
     socket
     |> assign(:page_title, "New Project")
-    |> assign(:project, %Project{})
+    |> assign(:project, %Project{client_id: client_id})
     |> assign(:client_id, client_id)
     |> assign(:patch, "/clients/#{client_id}")
   end

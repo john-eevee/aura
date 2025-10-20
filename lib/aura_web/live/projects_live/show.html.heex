@@ -2,7 +2,9 @@
   {@project.name}
   <:subtitle>{@project.description}</:subtitle>
 
-  <:actions><.link patch={~p"/projects/#{@project}/edit"}>Edit project</.link></:actions>
+  <:actions>
+    <.link patch={~p"/projects/#{@project}/edit?return_to=show"}>Edit project</.link>
+  </:actions>
 </.header>
 
 <div class="mb-6">
