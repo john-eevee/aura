@@ -2,9 +2,23 @@
   <.header>
     {@project.name}
     <:subtitle>{@project.description}</:subtitle>
-
     <:actions>
-      <.link patch={~p"/projects/#{@project}/edit?return_to=show"}>Edit project</.link>
+      <.popup_menu id="project-options">
+        <:trigger>
+          <button class="btn">
+            <.icon name="hero-ellipsis-vertical" class="h-5 w-5" />
+          </button>
+        </:trigger>
+        <:item>
+          <.popup_menu_item
+            title="Edit Project"
+            subtitle="Modify project details"
+            patch={~p"/projects/#{@project}/edit?return_to=show"}
+            icon="hero-pencil"
+          />
+          
+        </:item>
+      </.popup_menu>
     </:actions>
   </.header>
 

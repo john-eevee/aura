@@ -865,6 +865,112 @@ defmodule AuraWeb.CoreComponents do
   end
 
   @doc """
+  Renders a reusable popup menu component with a trigger button and child links.
+
+  This component creates a popover menu that appears on click. It accepts:
+  - A trigger element (usually a button)
+  - Menu items as child slots (typically `.menu_item` components or simple links)
+
+  ## Examples
+
+      <.popup_menu id="user-menu">
+        <:trigger>
+          <button class="btn btn-sm">Menu</button>
+        </:trigger>
+        <:item>
+          <.link navigate="/profile">Profile</.link>
+        </:item>
+        <:item>
+          <.link navigate="/settings">Settings</.link>
+        </:item>
+        <:item>
+          <.link href="/logout" method="delete">Logout</.link>
+        </:item>
+      </.popup_menu>
+  """
+  attr :id, :string, required: true, doc: "unique identifier for the popup"
+  attr :class, :string, default: "", doc: "additional classes for the popup container"
+
+  attr :position, :string,
+    values: ~w(right left),
+    default: "right",
+    doc: "popup position relative to trigger"
+
+  slot :trigger, required: true, doc: "the trigger element (usually a button)"
+  slot :item, doc: "menu items as children"
+
+  def popup_menu(assigns) do
+    position_class =
+      case assigns.position do
+        "left" -> "left-0"
+        _ -> "right-0"
+      end
+
+    ~H"""
+    <div class="relative inline-block">
+      <!-- Trigger Button -->
+      <div phx-click={JS.toggle(to: "#popup-menu-#{@id}")}>
+        {render_slot(@trigger)}
+      </div>
+      
+    <!-- Popup Menu -->
+      <div
+        id={"popup-menu-#{@id}"}
+        class={[
+          "hidden absolute #{position_class} top-full mt-2 card bg-base-100 shadow-lg rounded-md z-50 origin-top py-2 min-w-max",
+          @class
+        ]}
+        phx-click-away={JS.hide(to: "#popup-menu-#{@id}")}
+        phx-window-keydown={JS.hide(to: "#popup-menu-#{@id}")}
+        phx-key="escape"
+      >
+        <div class="px-3 pb-2">
+          <div class="text-sm font-semibold text-base-content/90 px-1 pb-2">Options</div>
+          <ul class="space-y-1">
+            <li :for={item <- @item} class="px-1 py-0" phx-click={JS.hide(to: "#popup-menu-#{@id}")}>
+              {render_slot(item)}
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
+  @doc """
+  Renders a popup menu item - a link with consistent styling for popup menus.
+
+  ## Examples
+
+      <.popup_menu_item navigate="/users/profile" icon="hero-user" title="Profile" subtitle="View your profile" class="custom-class" />
+  """
+  attr :rest, :global, include: ~w(href navigate patch method download)
+  attr :class, :string, default: ""
+  attr :icon, :string, default: nil
+  attr :title, :string, required: true
+  attr :subtitle, :string, default: nil
+
+  slot :inner_block, required: false
+
+  def popup_menu_item(assigns) do
+    ~H"""
+    <.link
+      {@rest}
+      class={["flex items-center gap-3 p-4 rounded-lg hover:bg-base-200 transition", @class]}
+    >
+      <.icon :if={@icon} name={@icon} />
+      <div>
+        <div class="font-medium">{@title}</div>
+        <div :if={@subtitle} class="text-sm text-base-content/60">{@subtitle}</div>
+      </div>
+      <div :if={@inner_block != []} class="mt-1">
+        {render_slot(@inner_block)}
+      </div>
+    </.link>
+    """
+  end
+
+  @doc """
   Translates the errors for a field from a keyword list of errors.
   """
   def translate_errors(errors, field) when is_list(errors) do
