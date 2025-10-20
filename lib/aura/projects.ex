@@ -43,7 +43,7 @@ defmodule Aura.Projects do
   """
   def get_project(id),
     # TODO: Add client preloading
-    do: Repo.get(Project, id) |> Repo.preload([:subprojects, :project_bom])
+    do: Repo.get(Project, id) |> Repo.preload([:client])
 
   ## Project CRUD
 
