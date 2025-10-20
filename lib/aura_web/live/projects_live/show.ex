@@ -9,7 +9,10 @@ defmodule AuraWeb.ProjectsLive.Show do
     {:ok,
      socket
      |> assign(:current_user, socket.assigns.current_scope.user)
-     |> assign(:current_scope, socket.assigns.current_scope)}
+     |> assign(:current_scope, socket.assigns.current_scope)
+     |> assign(:documents, [])
+     |> assign(:subprojects, [])
+     |> assign(:bom_entries, [])}
   end
 
   @impl true
@@ -24,32 +27,35 @@ defmodule AuraWeb.ProjectsLive.Show do
         end
 
       project = Projects.get_project!(id)
-      documents = Documents.list_project_documents(socket.assigns.current_scope, id)
-
-      {:noreply,
-       socket
-       |> assign(:page_title, page_title(socket.assigns.live_action))
-       |> assign(:project, project)
-       |> assign(:documents, documents)
-       |> assign(:active_tab, active_tab)}
 
       socket =
         socket
         |> assign(:page_title, page_title(socket.assigns.live_action))
-        |> assign(:project, Projects.get_project!(id))
+        |> assign(:project, project)
         |> assign(:active_tab, active_tab)
 
       socket =
         case socket.assigns.live_action do
           :new_subproject ->
-            assign(socket, :subproject, %Aura.Projects.Subproject{})
+            socket
+            |> assign(:subproject, %Aura.Projects.Subproject{})
+            |> assign(:active_tab, :subprojects)
 
           :edit_subproject ->
             subproject = Aura.Projects.get_subproject!(params["subproject_id"])
-            assign(socket, :subproject, subproject)
+
+            socket
+            |> assign(:subproject, subproject)
+            |> assign(:active_tab, :subprojects)
 
           :new_bom ->
-            assign(socket, :bom_entry, %Aura.Projects.ProjectBOM{})
+            socket
+            |> assign(:bom_entry, %Aura.Projects.ProjectBOM{})
+            |> assign(:active_tab, :bom)
+
+          :edit_bom ->
+            socket
+            |> assign(:active_tab, :bom)
 
           _ ->
             socket
@@ -103,29 +109,30 @@ defmodule AuraWeb.ProjectsLive.Show do
 
   @impl true
   def handle_event("change_tab", %{"tab" => tab}, socket) do
+    # extract data from params
     active_tab = String.to_existing_atom(tab)
-    socket = assign(socket, :active_tab, active_tab)
-
     current_scope = socket.assigns.current_scope
     project = socket.assigns.project
 
-    socket =
-      case active_tab do
-        :documents ->
-          documents = Documents.list_project_documents(current_scope, project.id)
-          assign(socket, :documents, documents)
+    # setup assign with initial data
+    socket = assign(socket, :active_tab, active_tab)
 
-        :subprojects ->
-          subprojects = Projects.list_subprojects(project.id)
-          assign(socket, :subprojects, subprojects)
+    case active_tab do
+      :documents ->
+        documents = Documents.list_project_documents(current_scope, project.id)
+        assign(socket, :documents, documents)
 
-        :bom ->
-          bom_entries = Projects.list_project_bom(project.id)
-          assign(socket, :bom_entries, bom_entries)
+      :subprojects ->
+        subprojects = Projects.list_subprojects(project.id)
+        assign(socket, :subprojects, subprojects)
 
-        _else ->
-          socket
-      end
+      :bom ->
+        bom_entries = Projects.list_project_bom(project.id)
+        assign(socket, :bom_entries, bom_entries)
+
+      _else ->
+        socket
+    end
 
     {:noreply, socket}
   end

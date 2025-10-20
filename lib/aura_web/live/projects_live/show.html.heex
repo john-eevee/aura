@@ -118,7 +118,10 @@
   <.header>
     Bill of Materials
     <:actions>
-      <.link patch={~p"/projects/#{@project}/bom/new"}><.button>Add BOM Entry</.button></.link>
+      <!-- check patch link -->
+      <.link patch={~p"/projects/#{@project}/bom/new?tab=bom-tab"}>
+        <.button>Add BOM Entry</.button>
+      </.link>
     </:actions>
   </.header>
 
@@ -134,7 +137,7 @@
     <:col :let={bom_entry} label="Purpose">{bom_entry.purpose}</:col>
 
     <:action :let={bom_entry}>
-      <.link patch={~p"/projects/#{@project}/bom/#{bom_entry}/edit"}>Edit</.link>
+      <.link patch={~p"/projects/#{@project}/bom/#{bom_entry}/edit?tab=bom-tab"}>Edit</.link>
     </:action>
 
     <:action :let={bom_entry}>
@@ -202,7 +205,7 @@
   :if={@live_action in [:new_subproject, :edit_subproject]}
   id="subproject-modal"
   show
-  on_cancel={JS.patch(~p"/projects/#{@project}/subprojects")}
+  on_cancel={JS.patch(~p"/projects/#{@project}?tab=subprojects-tab")}
 >
   <.live_component
     module={AuraWeb.ProjectsLive.SubprojectFormComponent}
@@ -211,7 +214,7 @@
     action={@live_action}
     subproject={@subproject}
     project={@project}
-    patch={~p"/projects/#{@project}/subprojects"}
+    patch={~p"/projects/#{@project}?tab=subprojects-tab"}
   />
 </.modal>
 
@@ -219,6 +222,7 @@
   :if={@live_action == :new_bom}
   id="bom-modal"
   show
+  on_cancel={JS.patch(~p"/projects/#{@project}?tab=bom-tab")}
 >
   <.live_component
     module={AuraWeb.ProjectsLive.BOMFormComponent}
@@ -227,7 +231,7 @@
     action={@live_action}
     bom_entry={@bom_entry}
     project={@project}
-    patch={~p"/projects/#{@project}/bom"}
+    patch={~p"/projects/#{@project}?tab=bom-tab"}
   />
 </.modal>
 
@@ -235,7 +239,7 @@
   :if={@live_action == :upload_document}
   id="document-upload-modal"
   show
-  on_cancel={JS.patch(~p"/projects/#{@project}/documents")}
+  on_cancel={JS.patch(~p"/projects/#{@project}?tab=documents-tab")}
 >
   <.live_component
     module={AuraWeb.DocumentsLive.UploadComponent}
@@ -244,6 +248,6 @@
     action={@live_action}
     project={@project}
     current_scope={@current_scope}
-    patch={~p"/projects/#{@project}/documents"}
+    patch={~p"/projects/#{@project}?tab=documents-tab"}
   />
 </.modal>
