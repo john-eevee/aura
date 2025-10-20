@@ -921,7 +921,8 @@ defmodule AuraWeb.CoreComponents do
       <div
         id={"popup-menu-#{@id}"}
         class={[
-          "hidden absolute #{position_class} top-full mt-2 card bg-base-100 shadow-lg rounded-md z-50 origin-top py-2 min-w-max",
+          @position_class,
+          "hidden absolute top-full mt-2 card bg-base-100 shadow-lg rounded-md z-50 origin-top py-2 min-w-max",
           @class
         ]}
         phx-click-away={JS.hide(to: "#popup-menu-#{@id}")}
