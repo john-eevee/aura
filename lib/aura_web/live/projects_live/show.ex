@@ -103,22 +103,27 @@ defmodule AuraWeb.ProjectsLive.Show do
 
   @impl true
   def handle_event("change_tab", %{"tab" => tab}, socket) do
-    active_tab = String.to_atom(tab)
+    active_tab = String.to_existing_atom(tab)
     socket = assign(socket, :active_tab, active_tab)
 
-    # Only push patch for tabs that have dedicated routes
+    current_scope = socket.assigns.current_scope
+    project = socket.assigns.project
+
     socket =
       case active_tab do
+        :documents ->
+          documents = Documents.list_project_documents(current_scope, project.id)
+          assign(socket, :documents, documents)
+
         :subprojects ->
-          push_patch(socket, to: ~p"/projects/#{socket.assigns.project}/subprojects")
+          subprojects = Projects.list_subprojects(project.id)
+          assign(socket, :subprojects, subprojects)
 
         :bom ->
-          push_patch(socket, to: ~p"/projects/#{socket.assigns.project}/bom")
+          bom_entries = Projects.list_project_bom(project.id)
+          assign(socket, :bom_entries, bom_entries)
 
-        :documents ->
-          push_patch(socket, to: ~p"/projects/#{socket.assigns.project}/documents")
-
-        _ ->
+        _else ->
           socket
       end
 
