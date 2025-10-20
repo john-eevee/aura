@@ -635,7 +635,7 @@ defmodule AuraWeb.CoreComponents do
     <a
       id={@id}
       class={[
-        "whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm",
+        "whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm cursor-pointer",
         tab_classes(@active)
       ]}
       {@rest}
